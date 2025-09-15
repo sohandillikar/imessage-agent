@@ -1,4 +1,5 @@
 import sqlite3
+import json
 
 user = "sohan"
 db_path = f"/Users/{user}/Library/Messages/chat.db"
@@ -31,9 +32,10 @@ def get_messages(options=''):
     query = f"""
     SELECT
         datetime(m.date/1000000000 + strftime('%s', '2001-01-01'), 'unixepoch', 'localtime') as dt,
-        m.ROWID as message_id,
+        m.guid,
+        m.reply_to_guid,
         m.text,
-        m.attributedBody as body,
+        m.attributedBody,
         h.id as sender_id,
         c.chat_identifier as chat_id,
         c.display_name as chat_name,
@@ -51,16 +53,92 @@ def get_messages(options=''):
     for i, message in enumerate(messages):
         if message['text'] and message['text'].strip():
             messages[i]['content'] = message['text']
-            messages[i]['content_type'] = "plain_text"
         else:
-            decoded_body = decode_attributed_body(message['body'])
-            messages[i]['content'] = decoded_body
-            messages[i]['content_type'] = "rich_text"
+            messages[i]['content'] = decode_attributed_body(message['attributedBody'])
         
         del messages[i]['text']
-        del messages[i]['body']
+        del messages[i]['attributedBody']
 
     cursor.close()
     conn.close()
 
-    return {"messages": messages, "query": query}
+    return messages
+
+def get_conversation_history(message, clean=False, bad_messages_file='bad_messages.json'):
+    with open(bad_messages_file, 'r') as f:
+        bad_messages = json.load(f)
+    
+    conversation_history = []
+    ignore_guids = []
+    current_message = message
+    
+    while True:
+        options_query = f"m.guid = '{current_message['reply_to_guid']}'"
+        earlier_message = get_messages(options=options_query)
+        if len(earlier_message) > 0:
+            earlier_message = earlier_message[0]
+            if clean and earlier_message['guid'] in bad_messages:
+                earlier_message['content'] = bad_messages[earlier_message['guid']]['rephrased']
+                if len(earlier_message['content']) > 0:
+                    conversation_history.insert(0, earlier_message)
+                else:
+                    ignore_guids.append(earlier_message['guid'])
+            else:
+                conversation_history.insert(0, earlier_message)
+            current_message = earlier_message
+        else:
+            break
+    
+    if clean and message['guid'] in bad_messages:
+        message['content'] = bad_messages[message['guid']]['rephrased']
+        if len(message['content']) > 0:
+            conversation_history.append(message)
+        else:
+            ignore_guids.append(message['guid'])
+    else:
+        conversation_history.append(message)
+    
+    return conversation_history, ignore_guids
+
+def get_conversations(messages, unique=True, clean=False, bad_messages_file='bad_messages.json'):
+    """
+    messages: list of messages from oldest to newest
+    """
+    convos = []
+    all_ignore_guids = []
+
+    def is_message_in_convos(message):
+        for convo in convos:
+            for convo_message in convo:
+                if message['guid'] == convo_message['guid']:
+                    return True
+        return False
+
+    for i in range(len(messages) - 1, -1, -1):
+        if not messages[i]['guid'] in all_ignore_guids and ((not unique) or (unique and not is_message_in_convos(messages[i]))):
+            convo, ignore_guids = get_conversation_history(messages[i], clean, bad_messages_file)
+            all_ignore_guids.extend(ignore_guids)
+            convos.append(convo)
+
+    return convos
+
+def prepare_convo_for_fine_tuning(convo):
+    while len(convo) > 0 and convo[0]["is_from_me"]:
+        del convo[0]
+    if not convo: return None
+
+    system_prompt = "You are Sohan's texting bot. Your job is to reply exactly as Sohan would text his girlfriend, Ishani. If Ishani sends multiple texts in a row, you may also reply with multiple texts if needed. Never break character and always respond like Sohan texting his girlfriend."
+    fine_tuning_data = [{"role": "system", "content": system_prompt}]
+
+    for message in convo:
+        role = "assistant" if message["is_from_me"] else "user"
+        fine_tuning_data.append({"role": role, "content": message["content"]})
+
+    return {"messages": fine_tuning_data}
+
+def prepare_convos_for_fine_tuning(convos, output_file, indent=None):
+    with open(output_file, 'w') as f:
+        for convo in convos:
+            fine_tuning_data = prepare_convo_for_fine_tuning(convo)
+            if not fine_tuning_data is None:
+                f.write(json.dumps(fine_tuning_data, indent=indent) + '\n')
