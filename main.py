@@ -21,15 +21,18 @@ def decode_attributed_body(hex_string):
 
     return decoded_body
 
-def get_messages(user):
+def get_messages(user, options=''):
+    if options:
+        options = f"AND {options}"
+    
     db_path = f"/Users/{user}/Library/Messages/chat.db"
     
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
     
-    query = """
+    query = f"""
     SELECT
-        datetime(m.date/1000000000 + strftime('%s', '2001-01-01'), 'unixepoch', 'localtime') as date,
+        datetime(m.date/1000000000 + strftime('%s', '2001-01-01'), 'unixepoch', 'localtime') as dt,
         m.ROWID as message_id,
         m.text,
         hex(m.attributedBody) as body,
@@ -40,9 +43,7 @@ def get_messages(user):
         FROM message m
         LEFT JOIN handle h ON m.handle_id = h.ROWID
         LEFT JOIN chat c ON m.cache_roomnames = c.chat_identifier
-        WHERE (m.text IS NOT NULL OR m.attributedBody IS NOT NULL)
-        ORDER BY m.date DESC
-        LIMIT 50
+        WHERE (m.text IS NOT NULL OR m.attributedBody IS NOT NULL) {options}
     """
     
     cursor.execute(query)
@@ -66,6 +67,8 @@ def get_messages(user):
 
     return messages
 
-messages = get_messages("sohan") # Change this to your Mac username
+query_options = "dt >= '2025-09-14' AND dt < '2025-09-15'"
+messages = get_messages("sohan", options=query_options) # Change this to your Mac username
 
 pprint(messages)
+print(len(messages))
