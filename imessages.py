@@ -1,15 +1,15 @@
 import sqlite3
-from pprint import pprint
+
+user = "sohan"
+db_path = f"/Users/{user}/Library/Messages/chat.db"
 
 def sql_output_to_json(output, columns):
     for i, row in enumerate(output):
         output[i] = {columns[j][0] : row[j] for j in range(len(columns))}
     return output
 
-def decode_attributed_body(hex_string):
-    """Decode attributedBody hex string to readable text"""
-    binary_data = bytes.fromhex(hex_string)
-    content = binary_data.decode('utf-8', errors='ignore')
+def decode_attributed_body(body):
+    content = body.decode("utf-8", errors="ignore")
 
     start_str = "NSString"
     start = content.find(start_str) + len(start_str)
@@ -21,11 +21,9 @@ def decode_attributed_body(hex_string):
 
     return decoded_body
 
-def get_messages(user, options=''):
+def get_messages(options=''):
     if options:
         options = f"AND {options}"
-    
-    db_path = f"/Users/{user}/Library/Messages/chat.db"
     
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
@@ -35,7 +33,7 @@ def get_messages(user, options=''):
         datetime(m.date/1000000000 + strftime('%s', '2001-01-01'), 'unixepoch', 'localtime') as dt,
         m.ROWID as message_id,
         m.text,
-        hex(m.attributedBody) as body,
+        m.attributedBody as body,
         h.id as sender_id,
         c.chat_identifier as chat_id,
         c.display_name as chat_name,
@@ -65,10 +63,4 @@ def get_messages(user, options=''):
     cursor.close()
     conn.close()
 
-    return messages
-
-query_options = "dt >= '2025-09-14' AND dt < '2025-09-15'"
-messages = get_messages("sohan", options=query_options) # Change this to your Mac username
-
-pprint(messages)
-print(len(messages))
+    return {"messages": messages, "query": query}
