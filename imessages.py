@@ -139,12 +139,11 @@ def get_conversations(messages: list[Message], unique: bool = True, clean: bool 
 
     return convos
 
-def prepare_convo_for_fine_tuning(convo: list[Message]) -> dict:
+def prepare_convo_for_fine_tuning(convo: list[Message], system_prompt: str) -> dict:
     while len(convo) > 0 and convo[0]["is_from_me"]:
         del convo[0]
     if not convo: return None
 
-    system_prompt = "You are Sohan's texting bot. Your job is to reply exactly as Sohan would text his girlfriend, Ishani. If Ishani sends multiple texts in a row, you may also reply with multiple texts if needed. Never break character and always respond like Sohan texting his girlfriend."
     fine_tuning_data = [{"role": "system", "content": system_prompt}]
 
     for message in convo:
@@ -153,9 +152,9 @@ def prepare_convo_for_fine_tuning(convo: list[Message]) -> dict:
 
     return {"messages": fine_tuning_data}
 
-def prepare_convos_for_fine_tuning(convos: list[list[Message]], output_file: str, indent: int = None):
+def prepare_convos_for_fine_tuning(convos: list[list[Message]], system_prompt: str, output_file: str, indent: int = None):
     with open(output_file, 'w') as f:
         for convo in convos:
-            fine_tuning_data = prepare_convo_for_fine_tuning(convo)
+            fine_tuning_data = prepare_convo_for_fine_tuning(convo, system_prompt)
             if not fine_tuning_data is None:
                 f.write(json.dumps(fine_tuning_data, indent=indent) + '\n')

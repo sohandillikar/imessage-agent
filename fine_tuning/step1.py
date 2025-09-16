@@ -1,7 +1,10 @@
 import os
+import sys
 import json
-import imessages as im
 from datetime import datetime
+
+sys.path.append('..')
+import imessages as im
 
 # SETTINGS
 SENDER_ID = "+15107503277"
