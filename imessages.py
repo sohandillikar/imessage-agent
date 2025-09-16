@@ -1,5 +1,6 @@
 import os
 import json
+import utils
 import sqlite3
 from dataclasses import dataclass
 
@@ -17,11 +18,6 @@ class Message:
     chat_id: str
     chat_name: str
     is_from_me: int
-
-def sql_output_to_json(output: list[tuple], columns: list[tuple]) -> list[dict]:
-    for i, row in enumerate(output):
-        output[i] = {columns[j][0] : row[j] for j in range(len(columns))}
-    return output
 
 def decode_attributed_body(body: bytes) -> str:
     content = body.decode("utf-8", errors="ignore")
@@ -54,15 +50,15 @@ def get_messages(options: str = '') -> list[Message]:
         c.chat_identifier as chat_id,
         c.display_name as chat_name,
         m.is_from_me
-        FROM message m
-        LEFT JOIN handle h ON m.handle_id = h.ROWID
-        LEFT JOIN chat c ON m.cache_roomnames = c.chat_identifier
-        WHERE (m.text IS NOT NULL OR m.attributedBody IS NOT NULL) {options}
+    FROM message m
+    LEFT JOIN handle h ON m.handle_id = h.ROWID
+    LEFT JOIN chat c ON m.cache_roomnames = c.chat_identifier
+    WHERE (m.text IS NOT NULL OR m.attributedBody IS NOT NULL) {options}
     """
     
     cursor.execute(query)
     messages = cursor.fetchall()
-    messages = sql_output_to_json(messages, cursor.description)
+    messages = utils.sql_output_to_json(messages, cursor.description)
 
     for i, message in enumerate(messages):
         if message['text'] and message['text'].strip():

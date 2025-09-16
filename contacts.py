@@ -1,0 +1,54 @@
+import utils
+import sqlite3
+from dataclasses import dataclass
+
+# SETTINGS
+USER = "sohan"
+DB_PATH = f"/Users/{USER}/Library/Application Support/AddressBook/Sources/5D5285FC-44B6-49EE-A9E5-3D248F8B6313/AddressBook-v22.abcddb"
+
+@dataclass
+class Contact:
+    id: str
+    firstname: str
+    lastname: str
+    phone: str
+    email: str
+
+def normalize_phone(phone: str) -> str:
+    try:
+        return ''.join(filter(str.isdigit, phone))
+    except:
+        return None
+
+def get_contacts(options: str = '') -> list[Contact]:
+    if options:
+        options = f"AND {options}"
+
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    query = f"""
+    SELECT DISTINCT
+        r.Z_PK as id,
+        r.ZFIRSTNAME as firstname,
+        r.ZLASTNAME as lastname,
+        p.ZFULLNUMBER as phone,
+        e.ZADDRESS as email
+    FROM ZABCDRECORD r
+    LEFT JOIN ZABCDPHONENUMBER p ON r.Z_PK = p.ZOWNER
+    LEFT JOIN ZABCDEMAILADDRESS e ON r.Z_PK = e.ZOWNER
+    WHERE r.ZFIRSTNAME IS NOT NULL AND
+        (p.ZFULLNUMBER IS NOT NULL OR e.ZADDRESS IS NOT NULL) {options}
+    """
+
+    cursor.execute(query)
+    contacts = cursor.fetchall()
+    contacts = utils.sql_output_to_json(contacts, cursor.description)
+
+    for contact in contacts:
+        contact['phone'] = normalize_phone(contact['phone'])
+
+    cursor.close()
+    conn.close()
+
+    return contacts
