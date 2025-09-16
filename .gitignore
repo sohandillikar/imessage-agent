@@ -1,2 +1,4 @@
 __pycache__/
 .env
+fine_tuning_data.jsonl
+bad_messages.json
