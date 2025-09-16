@@ -13,6 +13,7 @@ sender_id = '{SENDER_ID}' AND
 reply_to_guid IS NOT NULL AND
 is_from_me = 1
 """
+MANUAL_REPHRASE = False
 BAD_MESSAGES_FILE = "bad_messages.json"
 BAD_WORDS = [
     # Racial slurs
@@ -35,7 +36,7 @@ BAD_WORDS = [
     "kill",
 ]
 
-def extract_bad_messages(convos: list[im.Message], output_file: str = None):
+def extract_bad_messages(convos: list[im.Message], manual_rephrase: bool = True, output_file: str = None):
     if os.path.exists(output_file):
         with open(output_file, 'r') as f:
             bad_messages = json.load(f)
@@ -53,7 +54,7 @@ def extract_bad_messages(convos: list[im.Message], output_file: str = None):
                         'bad_word': word,
                         'is_from_me': message['is_from_me'],
                         'content': message['content'],
-                        'rephrased': message['content']
+                        'rephrased': message['content'] if manual_rephrase else ''
                     }
                     new_bad_messages += 1
 
@@ -79,7 +80,7 @@ def main():
     convos = im.get_conversations(messages, unique=True, clean=False)
     print(f"Found {len(convos)} unique convos.")
 
-    extract_bad_messages(convos, output_file=BAD_MESSAGES_FILE)
+    extract_bad_messages(convos, manual_rephrase=MANUAL_REPHRASE, output_file=BAD_MESSAGES_FILE)
     print("Done! Please review and rephrase all the new bad messages.")
 
 if __name__ == "__main__":
