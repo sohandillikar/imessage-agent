@@ -1,15 +1,29 @@
-import sqlite3
+import os
 import json
+import sqlite3
+from dataclasses import dataclass
 
-user = "sohan"
-db_path = f"/Users/{user}/Library/Messages/chat.db"
+# SETTINGS
+USER = "sohan"
+DB_PATH = f"/Users/{USER}/Library/Messages/chat.db"
 
-def sql_output_to_json(output, columns):
+@dataclass
+class Message:
+    dt: str
+    guid: str
+    reply_to_guid: str
+    content: str
+    sender_id: str
+    chat_id: str
+    chat_name: str
+    is_from_me: int
+
+def sql_output_to_json(output: list[tuple], columns: list[tuple]) -> list[dict]:
     for i, row in enumerate(output):
         output[i] = {columns[j][0] : row[j] for j in range(len(columns))}
     return output
 
-def decode_attributed_body(body):
+def decode_attributed_body(body: bytes) -> str:
     content = body.decode("utf-8", errors="ignore")
 
     start_str = "NSString"
@@ -22,11 +36,11 @@ def decode_attributed_body(body):
 
     return decoded_body
 
-def get_messages(options=''):
+def get_messages(options: str = '') -> list[Message]:
     if options:
         options = f"AND {options}"
     
-    conn = sqlite3.connect(db_path)
+    conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     
     query = f"""
@@ -64,9 +78,12 @@ def get_messages(options=''):
 
     return messages
 
-def get_conversation_history(message, clean=False, bad_messages_file='bad_messages.json'):
-    with open(bad_messages_file, 'r') as f:
-        bad_messages = json.load(f)
+def get_conversation_history(message: Message, clean: bool = False, bad_messages_file: str = 'bad_messages.json') -> tuple[list[Message], list[str]]:
+    if os.path.exists(bad_messages_file):
+        with open(bad_messages_file, 'r') as f:
+                bad_messages = json.load(f)
+    else:
+        bad_messages = {}
     
     conversation_history = []
     ignore_guids = []
@@ -100,7 +117,7 @@ def get_conversation_history(message, clean=False, bad_messages_file='bad_messag
     
     return conversation_history, ignore_guids
 
-def get_conversations(messages, unique=True, clean=False, bad_messages_file='bad_messages.json'):
+def get_conversations(messages: list[Message], unique: bool = True, clean: bool = False, bad_messages_file: str = 'bad_messages.json') -> list[list[Message]]:
     """
     messages: list of messages from oldest to newest
     """
@@ -122,7 +139,7 @@ def get_conversations(messages, unique=True, clean=False, bad_messages_file='bad
 
     return convos
 
-def prepare_convo_for_fine_tuning(convo):
+def prepare_convo_for_fine_tuning(convo: list[Message]) -> dict:
     while len(convo) > 0 and convo[0]["is_from_me"]:
         del convo[0]
     if not convo: return None
@@ -136,7 +153,7 @@ def prepare_convo_for_fine_tuning(convo):
 
     return {"messages": fine_tuning_data}
 
-def prepare_convos_for_fine_tuning(convos, output_file, indent=None):
+def prepare_convos_for_fine_tuning(convos: list[list[Message]], output_file: str, indent: int = None):
     with open(output_file, 'w') as f:
         for convo in convos:
             fine_tuning_data = prepare_convo_for_fine_tuning(convo)
