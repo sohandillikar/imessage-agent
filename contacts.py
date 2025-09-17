@@ -1,5 +1,6 @@
 import utils
 import sqlite3
+import pandas as pd
 from dataclasses import dataclass
 
 # SETTINGS
@@ -20,7 +21,7 @@ def normalize_phone(phone: str) -> str:
     except:
         return None
 
-def get_contacts(options: str = '') -> list[Contact]:
+def get_contacts(options: str = "") -> list[Contact]:
     if options:
         options = f"AND {options}"
 
@@ -52,3 +53,20 @@ def get_contacts(options: str = '') -> list[Contact]:
     conn.close()
 
     return contacts
+
+def filter_contacts(contacts: list[Contact] = None, firstname: str = None, lastname: str = None, \
+                    phone: str = None, email: str = None, return_type: str = "json") -> list[Contact] | pd.DataFrame:
+    if contacts is None:
+        contacts = get_contacts()
+    
+    contacts = pd.DataFrame(contacts)
+    filtered_contacts = contacts[
+        (contacts["firstname"].str.contains(firstname, case=False, na=False) if firstname else True) &
+        (contacts["lastname"].str.contains(lastname, case=False, na=False) if lastname else True) &
+        (contacts["phone"].str.contains(phone, case=False, na=False) if phone else True) &
+        (contacts["email"].str.contains(email, case=False, na=False) if email else True)
+    ]
+
+    if return_type == "json":
+        return filtered_contacts.to_dict('records')
+    return filtered_contacts

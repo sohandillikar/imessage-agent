@@ -7,7 +7,7 @@ sys.path.append('..')
 import imessages as im
 
 # SETTINGS
-SENDER_ID = "+15107503277"
+SENDER_ID = "+15107503277" # example: "+1XXXXXXXXXX"
 QUERY_OPTIONS = f"""
 sender_id = '{SENDER_ID}' AND
 reply_to_guid IS NOT NULL AND

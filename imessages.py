@@ -32,6 +32,24 @@ def decode_attributed_body(body: bytes) -> str:
 
     return decoded_body
 
+def get_contacts(options: str = '') -> list[dict]:
+    if options:
+        options = f"WHERE {options}"
+    
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    
+    query = f"SELECT * FROM handle {options}"
+    cursor.execute(query)
+    
+    contacts = cursor.fetchall()
+    contacts = utils.sql_output_to_json(contacts, cursor.description)
+
+    cursor.close()
+    conn.close()
+
+    return contacts
+
 def get_messages(options: str = '') -> list[Message]:
     if options:
         options = f"AND {options}"
