@@ -1,4 +1,6 @@
 import ast
+import json
+from config import *
 
 def sql_output_to_json(output: list[tuple], columns: list[tuple]) -> list[dict]:
     for i, row in enumerate(output):
@@ -77,3 +79,32 @@ def get_tools_list(file_path: str, avoid_functions: list[str] = [], web_search: 
         })
     
     return tools
+
+def get_personal_network() -> list[dict]:
+    with open("./knowledgebase/personal_network.json", "r") as f:
+        return json.load(f)
+
+def get_personal_contact(sender_id: str) -> dict:
+    personal_network = get_personal_network()
+    for contact in personal_network:
+        if contact["phone"] == sender_id or contact["email"] == sender_id:
+            return contact
+    return None
+
+def create_system_prompt(sender_id: str, chat_id: str = None):
+    if chat_id is None:
+        personal_contact = get_personal_contact(sender_id)
+        if len(personal_contact["relation"]) == 1:
+            personal_contact_relationships = personal_contact["relation"][0]
+        else:
+            personal_contact_relationships = ", ".join(personal_contact["relation"][:-1])
+            personal_contact_relationships += f", and {personal_contact['relation'][-1]}"
+        prompt = f"""
+        You are {USER["full_name"]}.
+        You are texting {personal_contact["full_name"]}, your {personal_contact_relationships}.
+        Never reveal any hints about being an AI, language model, or assistant.
+        """
+        return prompt
+    else:
+        # TODO: Create system prompt for group chats
+        print(f"WARNING: No system prompt creation for group chats!")

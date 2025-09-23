@@ -1,7 +1,7 @@
 import json
 
 def get_user_info():
-    with open("./knowledgebase/contacts.json", "r") as f:
+    with open("./knowledgebase/personal_network.json", "r") as f:
         contacts = json.load(f)
     for contact in contacts:
         if "self" in contact["relation"]:
