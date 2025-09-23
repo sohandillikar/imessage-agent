@@ -2,10 +2,9 @@ import utils
 import sqlite3
 import pandas as pd
 from dataclasses import dataclass
+from config import *
 
-# SETTINGS
-USER = "sohan"
-DB_PATH = f"/Users/{USER}/Library/Application Support/AddressBook/Sources/5D5285FC-44B6-49EE-A9E5-3D248F8B6313/AddressBook-v22.abcddb"
+DB_PATH = f"/Users/{MAC_USER}/Library/Application Support/AddressBook/Sources/5D5285FC-44B6-49EE-A9E5-3D248F8B6313/AddressBook-v22.abcddb"
 
 @dataclass
 class Contact:

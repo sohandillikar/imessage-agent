@@ -3,10 +3,9 @@ import json
 import utils
 import sqlite3
 from dataclasses import dataclass
+from config import *
 
-# SETTINGS
-USER = "sohan"
-DB_PATH = f"/Users/{USER}/Library/Messages/chat.db"
+DB_PATH = f"/Users/{MAC_USER}/Library/Messages/chat.db"
 
 @dataclass
 class Message:
