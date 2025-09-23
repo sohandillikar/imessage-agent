@@ -3,6 +3,7 @@ import json
 from dotenv import load_dotenv
 from openai import OpenAI
 from tools import *
+import utils
 
 load_dotenv()
 
@@ -33,12 +34,11 @@ def create_response(input_messages):
             return create_response(input_messages)
     return response, input_messages
 
-# system_prompt = "You are a helpful assistant that can answer questions and help with tasks."
-# messages = [{"role": "system", "content": [{"type": "input_text", "text": system_prompt}]}]
-messages = []
+system_prompt = utils.create_system_prompt(sender_id="+15107503277")
+messages = [{"role": "system", "content": [{"type": "input_text", "text": system_prompt}]}]
 
 while True:
-    user_input = input("You: ")
+    user_input = input("Ishani: ")
     messages.append({"role": "user", "content": [{"type": "input_text", "text": user_input}]})
     response, messages = create_response(messages)
     if len(messages) > 20:

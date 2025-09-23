@@ -3,7 +3,7 @@ import json
 import utils
 import sqlite3
 from dataclasses import dataclass
-from config import *
+from config import MAC_USER
 
 DB_PATH = f"/Users/{MAC_USER}/Library/Messages/chat.db"
 

@@ -1,6 +1,5 @@
 import os
 import utils
-from config import *
 from datetime import datetime
 
 # https://platform.openai.com/docs/guides/function-calling
@@ -33,7 +32,7 @@ def get_user_info() -> dict:
     Returns:
         dict: Sohan Dillikar's email, phone, nicknames, occupation, relation, background, interests
     """
-    return USER
+    return utils.get_user_info()
 
 def call_function(name: str, args: dict):
     if name == "get_current_date":
