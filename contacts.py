@@ -57,6 +57,8 @@ def filter_contacts(contacts: list[Contact] = None, firstname: str = None, lastn
                     phone: str = None, email: str = None, return_type: str = "json") -> list[Contact] | pd.DataFrame:
     if contacts is None:
         contacts = get_contacts()
+    if phone:
+        phone = normalize_phone(phone)
     
     contacts = pd.DataFrame(contacts)
     filtered_contacts = contacts[

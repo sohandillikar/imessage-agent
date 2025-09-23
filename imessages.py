@@ -91,6 +91,29 @@ def get_messages(options: str = '') -> list[Message]:
 
     return messages
 
+def get_chat_participants(chat_id: str):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    query = f"""
+    SELECT
+        c.chat_identifier as chat_id,
+        h.id as sender_id
+    FROM chat c
+    JOIN chat_handle_join chj ON chj.chat_id = c.ROWID
+    JOIN handle h ON h.ROWID = chj.handle_id
+    WHERE c.chat_identifier = '{chat_id}'
+    """
+
+    cursor.execute(query)
+    participants = cursor.fetchall()
+    participants = utils.sql_output_to_json(participants, cursor.description)
+
+    cursor.close()
+    conn.close()
+
+    return participants
+
 def get_conversation_history(message: Message, clean: bool = False, bad_messages_file: str = 'bad_messages.json') -> tuple[list[Message], list[str]]:
     if os.path.exists(bad_messages_file):
         with open(bad_messages_file, 'r') as f:
