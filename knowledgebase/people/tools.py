@@ -56,7 +56,7 @@ def get_person_email(person_name: str) -> str:
     Get the email address of anyone in your social circle.
     Use this when someone asks for the email or contact information of a person.
     Args:
-        person_name: The name of the person
+        person_name: The name of the person whose email is being requested. If the person texting is asking about themself, use their name.
     Returns:
         dict: Email information with status:
         - {"status": "found", "email": "email@example.com"} if email found
