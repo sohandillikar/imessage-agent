@@ -25,7 +25,7 @@ def get_arg_description(arg_name: str, docstring: str) -> str:
 
 # TODO: Modify for enum (https://platform.openai.com/docs/guides/function-calling)
 # TODO: Create config file for web search location
-def get_tools_list(file_path: str, avoid_functions: list[str] = [], web_search: bool = False) -> list[dict]:
+def get_tools_list(file_path: str, module_name: str = None, avoid_functions: list[str] = [], web_search: bool = False) -> list[dict]:
     with open(file_path, "r") as f:
         tree = ast.parse(f.read())
     
@@ -34,6 +34,8 @@ def get_tools_list(file_path: str, avoid_functions: list[str] = [], web_search: 
     for node in ast.walk(tree):
         if isinstance(node, ast.FunctionDef) and node.name not in avoid_functions:
             function_name = node.name
+            if module_name is not None:
+                function_name = f"{module_name}-{function_name}"
             description = ast.get_docstring(node)
             properties = {}
             required = []

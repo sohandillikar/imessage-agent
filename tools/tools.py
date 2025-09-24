@@ -10,8 +10,9 @@ import knowledgebase.people.tools as people_tools
 # Create tools list
 tools_list = get_tools_list(__file__, avoid_functions=["call_function"], web_search=True)
 tools_files = glob.glob("knowledgebase/**/tools.py", recursive=True)
-for file in tools_files:
-    tools_list += get_tools_list(file)
+for file_path in tools_files:
+    folder_name = file_path.split("/")[-2]
+    tools_list += get_tools_list(file_path, module_name=folder_name, avoid_functions=["call_function"])
 
 def get_current_date() -> str:
     """
@@ -32,13 +33,8 @@ def get_current_time() -> str:
 def call_function(name: str, args: dict):
     if name == "get_current_date":
         return get_current_date(**args)
-    elif name == "get_current_time":
+    if name == "get_current_time":
         return get_current_time(**args)
-    elif name == "get_user_email":
-        return people_tools.get_user_email(**args)
-    elif name == "get_user_phone":
-        return people_tools.get_user_phone(**args)
-    elif name == "get_user_interests":
-        return people_tools.get_user_interests(**args)
-    else:
-        raise ValueError(f"Function '{name}' not found")
+    if name.startswith("people-"):
+        return people_tools.call_function(name.split("-")[1], args)
+    raise ValueError(f"Function '{name}' not found")
