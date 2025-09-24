@@ -1,9 +1,9 @@
-import knowledgebase.people.utils as people
+import knowledgebase.people.utils as people_utils
 
 def create_system_prompt(sender_id: str = None, chat_id: str = None):
-    user = people.get_user_info()
+    user = people_utils.get_user_info()
     if sender_id is not None:
-        person = people.get_person_info(sender_id)
+        person = people_utils.get_person_info(sender_id)
         if len(person["relations"]) > 1:
             relationships_str = ", ".join(person["relations"][:-1])
             relationships_str += f", and {person['relations'][-1]}"

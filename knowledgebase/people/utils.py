@@ -1,4 +1,3 @@
-import os
 import json
 
 def get_people() -> list[dict]:

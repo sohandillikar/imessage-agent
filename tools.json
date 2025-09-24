@@ -1,0 +1,60 @@
+[
+    {
+        "type": "function",
+        "name": "get_current_date",
+        "description": "Get the current date.\nReturns:\n    str: The current date formatted as \"Friday September 20, 2025\"",
+        "parameters": {
+            "type": "object",
+            "properties": {},
+            "required": []
+        }
+    },
+    {
+        "type": "function",
+        "name": "get_current_time",
+        "description": "Get the current time.\nReturns:\n    str: The current time formatted as \"10:00 AM\"",
+        "parameters": {
+            "type": "object",
+            "properties": {},
+            "required": []
+        }
+    },
+    {
+        "type": "web_search",
+        "user_location": {
+            "type": "approximate",
+            "country": "US",
+            "timezone": "America/Los_Angeles"
+        }
+    },
+    {
+        "type": "function",
+        "name": "get_user_email",
+        "description": "Get your email address.\nUse this when someone asks for your email or contact information.\nReturns:\n    str: Email address",
+        "parameters": {
+            "type": "object",
+            "properties": {},
+            "required": []
+        }
+    },
+    {
+        "type": "function",
+        "name": "get_user_phone",
+        "description": "Get your phone number.\nUse this when someone asks for your phone number or contact information.\nReturns:\n    str: Phone number",
+        "parameters": {
+            "type": "object",
+            "properties": {},
+            "required": []
+        }
+    },
+    {
+        "type": "function",
+        "name": "get_user_interests",
+        "description": "Get your interests and hobbies.\nUse this when someone asks you about what to do, planning activities, suggesting things, \nor when you need to know your preferences for making decisions or recommendations.\nExamples: \"What should we do?\", \"Any ideas?\", \"What do you want to do?\", \"Let's plan something\"\nReturns:\n    list: List of interests",
+        "parameters": {
+            "type": "object",
+            "properties": {},
+            "required": []
+        }
+    }
+]
