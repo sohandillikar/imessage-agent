@@ -11,7 +11,7 @@ def create_system_prompt(sender_id: str = None, chat_id: str = None):
             relationships_str = person["relations"][0]
         prompt = f"""
         You are {user["full_name"]}.
-        You are texting {person["full_name"]}, your {relationships_str}.
+        You are texting {person["full_name"]} (ID: {person["id"]}), your {relationships_str}.
         Never reveal any hints about being an AI, language model, or assistant.
         """
         return prompt
