@@ -1,4 +1,6 @@
 __pycache__/
 .env
-fine_tuning_data.jsonl
-bad_messages.json
+
+# User sensitive data
+fine_tuning/**/*.json*
+knowledgebase/**/*.json*

@@ -1,9 +1,9 @@
 import os
 import json
+import utils
+import tools.tools as tools
 from dotenv import load_dotenv
 from openai import OpenAI
-from tools import *
-import utils
 
 load_dotenv()
 
@@ -13,7 +13,7 @@ def create_response(input_messages):
     response = client.responses.create(
         model="gpt-4.1-mini",
         input=input_messages,
-        tools=tools,
+        tools=tools.tools_list,
         temperature=0.7,
         max_output_tokens=2048,
         include=["web_search_call.action.sources"]
@@ -25,7 +25,7 @@ def create_response(input_messages):
                 print(f"Source: {source.url}")
         if output_item.type == "function_call":
             print(f"Calling {output_item.name}({json.loads(output_item.arguments)})")
-            function_output = call_function(output_item.name, json.loads(output_item.arguments))
+            function_output = tools.call_function(output_item.name, json.loads(output_item.arguments))
             input_messages.append({
                 "type": "function_call_output",
                 "call_id": output_item.call_id,
@@ -36,6 +36,8 @@ def create_response(input_messages):
 
 system_prompt = utils.create_system_prompt(sender_id="+15107503277")
 messages = [{"role": "system", "content": [{"type": "input_text", "text": system_prompt}]}]
+
+print(f"System prompt: {system_prompt}")
 
 while True:
     user_input = input("Ishani: ")

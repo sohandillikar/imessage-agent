@@ -1,13 +1,12 @@
-import os
-import utils
 from datetime import datetime
+from .utils import get_tools_list
+import knowledgebase.people.utils as people
 
 # https://platform.openai.com/docs/guides/function-calling
 # If your function has no return value (e.g. send_email),
 # simply return a string to indicate success or failure. (e.g. "success")
 
-file_path = f"./{os.path.basename(__file__)}"
-tools = utils.get_tools_list(file_path, avoid_functions=["call_function"], web_search=True)
+tools_list = get_tools_list(__file__, avoid_functions=["call_function"], web_search=True)
 
 def get_current_date() -> str:
     """
@@ -32,7 +31,7 @@ def get_user_info() -> dict:
     Returns:
         dict: Sohan Dillikar's email, phone, nicknames, occupation, relation, background, interests
     """
-    return utils.get_user_info()
+    return people.get_user_info()
 
 def call_function(name: str, args: dict):
     if name == "get_current_date":
@@ -42,4 +41,4 @@ def call_function(name: str, args: dict):
     elif name == "get_user_info":
         return get_user_info(**args)
     else:
-        raise ValueError(f"Function {name} not found")
+        raise ValueError(f"Function '{name}' not found")

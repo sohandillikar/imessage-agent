@@ -1,9 +1,9 @@
 import os
 import json
-import utils
 import sqlite3
 from dataclasses import dataclass
-from config import MAC_USER
+from .config import MAC_USER
+import apple_db.utils as utils
 
 DB_PATH = f"/Users/{MAC_USER}/Library/Messages/chat.db"
 
