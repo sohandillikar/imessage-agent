@@ -6,11 +6,11 @@ from openai import OpenAI
 load_dotenv()
 
 def setup() -> OpenAI:
-    if os.getenv("OPENAI_API_KEY") is None:
+    if not os.getenv("OPENAI_API_KEY"):
         raise ValueError("OPENAI_API_KEY is not set in .env")
-    if os.getenv("COUNTRY") is None:
+    if not os.getenv("COUNTRY"):
         raise ValueError("COUNTRY is not set in .env")
-    if os.getenv("TIMEZONE") is None:
+    if not os.getenv("TIMEZONE"):
         raise ValueError("TIMEZONE is not set in .env")
     
     # Check if knowledge_base vector store exists
