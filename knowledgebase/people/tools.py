@@ -1,84 +1,67 @@
 import knowledgebase.people.utils as people_utils
 
-def get_user_email() -> str:
-    """
-    Get your email address.
-    Use this when someone asks for your email or contact information.
-    Returns:
-        str: Email address
-    """
-    return people_utils.get_user_info()["email"]
+avoid_functions = ["call_function"]
 
-def get_user_phone() -> str:
+def add_new_liking_to_person(person_name: str, new_liking: str) -> str:
     """
-    Get your phone number.
-    Use this when someone asks for your phone number or contact information.
-    Returns:
-        str: Phone number
-    """
-    return people_utils.get_user_info()["phone"]
-
-def get_user_background() -> dict[str, list[str]]:
-    """
-    Get information about your career, education, occupations, and history.
-    Use this when someone asks about your job, career, education, or past experiences.
-    Examples:
-        - "What do you do?"
-        - "What's your job?"
-        - "Tell me about your work"
-        - "What's your major?"
-    Returns:
-        dict: Occupations and history
-    """
-    user = people_utils.get_user_info()
-    return {
-        "occupations": user["occupations"],
-        "history": user["history"]
-    }
-
-def get_user_interests() -> list[str]:
-    """
-    Get your interests and hobbies.
-    Use this when someone asks you about what to do, planning activities, suggesting things, 
-    or when you need to know your preferences for making decisions or recommendations.
-    Examples:
-        - "What should we do?",
-        - "Any ideas?",
-        - "What do you want to do?",
-        - "Let's plan something"
-    Returns:
-        list: List of interests
-    """
-    return people_utils.get_user_info()["interests"]
-
-def get_person_email(person_name: str) -> str:
-    """
-    Get the email address of anyone in your social circle.
-    Use this when someone asks for the email or contact information of a person.
+    Add a new interest or liking to someone's profile when you learn about it in conversation.
+    Use this when someone mentions any new hobby, interest, passion, or liking they have.
     Args:
-        person_name: The name of the person whose email is being requested. If the person texting is asking about themself, use their name.
+        person_name: The name of the person
+        new_liking: Their new liking to add
     Returns:
-        dict: Email information with status:
-        - {"status": "found", "email": "email@example.com"} if email found
-        - {"status": "multiple_found", "people": ["Name1", "Name2"]} if multiple people with same name
-        - {"status": "not_found"} if no person found or no email available
+        str: Status of the update operation (e.g. "success", "error")
     """
-    people = people_utils.filter_people_by_name(person_name)
-    if len(people) == 1 and people[0]["email"] is not None:
-        return {"status": "found", "email": people[0]["email"]}
-    if len(people) > 1:
-        return {"status": "multiple_found", "people": [p["full_name"] for p in people]}
-    return {"status": "not_found"}
+    print(f"Adding liking {new_liking} to {person_name}")
+    return "success"
+
+def add_new_disliking_to_person(person_name: str, new_disliking: str) -> str:
+    """
+    Add a new disliking to someone's profile when you learn about it in conversation.
+    Use this when someone mentions something they don't like, hate, or want to avoid.
+    Args:
+        person_name: The name of the person
+        new_disliking: Their new disliking to add
+    Returns:
+        str: Status of the update operation (e.g. "success", "error")
+    """
+    print(f"Adding disliking {new_disliking} to {person_name}")
+    return "success"
+
+def add_contact_info(person_name: str, info_type: str, info_value: str) -> dict:
+    """
+    Add new contact information when you learn about it.
+    Use this when someone mentions a new phone number, email, or social media handle.
+    
+    Args:
+        person_name: The name of the person
+        info_type: Type of info ("phone", "email", "instagram", etc.)
+        info_value: The actual contact information
+    
+    Returns:
+        dict: Status of the update operation
+    """
+    # Implementation to update people.json
+    pass
+
+def add_background_info(person_name: str, new_info: str) -> dict:
+    """
+    Add new background information about someone.
+    Use this when you learn new facts about someone's life, job, or experiences.
+    
+    Args:
+        person_name: The name of the person
+        new_info: The new background information to add
+    
+    Returns:
+        dict: Status of the update operation
+    """
+    # Implementation to update people.json
+    pass
 
 def call_function(name: str, args: dict):
-    if name == "get_user_email":
-        return get_user_email(**args)
-    if name == "get_user_phone":
-        return get_user_phone(**args)
-    if name == "get_user_background":
-        return get_user_background(**args)
-    if name == "get_user_interests":
-        return get_user_interests(**args)
-    if name == "get_person_email":
-        return get_person_email(**args)
+    if name == "add_new_liking_to_person":
+        return add_new_liking_to_person(**args)
+    if name == "add_new_disliking_to_person":
+        return add_new_disliking_to_person(**args)
     raise ValueError(f"Function '{name}' not found")
