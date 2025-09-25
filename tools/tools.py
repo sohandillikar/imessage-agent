@@ -8,11 +8,13 @@ import knowledgebase.people.tools as people_tools
 # simply return a string to indicate success or failure. (e.g. "success")
 
 # Create tools list
-tools_list = get_tools_list(__file__, avoid_functions=["call_function"], web_search=True)
+tools_list = get_tools_list(__file__, avoid_functions=["call_function"], web_search=True, file_search=True)
+"""
 tools_files = glob.glob("knowledgebase/**/tools.py", recursive=True)
 for file_path in tools_files:
     folder_name = file_path.split("/")[-2]
     tools_list += get_tools_list(file_path, module_name=folder_name, avoid_functions=["call_function"])
+"""
 
 def get_current_date() -> str:
     """

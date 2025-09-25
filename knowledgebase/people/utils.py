@@ -12,13 +12,6 @@ def get_user_info() -> dict:
     print("WARNING: No user info found in knowledgebase/people/people.json!")
     return None
 
-def get_person_info_by_id(person_id: int) -> dict:
-    people = get_people()
-    for person in people:
-        if person["id"] == person_id:
-            return person
-    return None
-
 def get_person_info_by_sender_id(sender_id: str) -> dict:
     people = get_people()
     for person in people:

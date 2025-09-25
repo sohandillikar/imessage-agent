@@ -24,8 +24,8 @@ def get_arg_description(arg_name: str, docstring: str) -> str:
     return None
 
 # TODO: Modify for enum (https://platform.openai.com/docs/guides/function-calling)
-# TODO: Create config file for web search location
-def get_tools_list(file_path: str, module_name: str = None, avoid_functions: list[str] = [], web_search: bool = False) -> list[dict]:
+# TODO: Create config file for web search location and vector store ids
+def get_tools_list(file_path: str, module_name: str = None, avoid_functions: list[str] = [], web_search: bool = False, file_search: bool = False) -> list[dict]:
     with open(file_path, "r") as f:
         tree = ast.parse(f.read())
     
@@ -71,6 +71,12 @@ def get_tools_list(file_path: str, module_name: str = None, avoid_functions: lis
                 "country": "US",
                 "timezone": "America/Los_Angeles"
             }
+        })
+
+    if file_search:
+        tools.append({
+            "type": "file_search",
+            "vector_store_ids": ["vs_68d46a9798cc8191b121fd61c32564ee"],
         })
     
     return tools

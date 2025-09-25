@@ -1,0 +1,36 @@
+[
+    {
+        "type": "function",
+        "name": "get_current_date",
+        "description": "Get the current date.\nReturns:\n    str: The current date formatted as \"Friday September 20, 2025\"",
+        "parameters": {
+            "type": "object",
+            "properties": {},
+            "required": []
+        }
+    },
+    {
+        "type": "function",
+        "name": "get_current_time",
+        "description": "Get the current time.\nReturns:\n    str: The current time formatted as \"10:00 AM\"",
+        "parameters": {
+            "type": "object",
+            "properties": {},
+            "required": []
+        }
+    },
+    {
+        "type": "web_search",
+        "user_location": {
+            "type": "approximate",
+            "country": "US",
+            "timezone": "America/Los_Angeles"
+        }
+    },
+    {
+        "type": "file_search",
+        "vector_store_ids": [
+            "vs_68d46a9798cc8191b121fd61c32564ee"
+        ]
+    }
+]
