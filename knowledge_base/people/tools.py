@@ -1,6 +1,4 @@
-import knowledgebase.people.utils as people_utils
-
-avoid_functions = ["call_function"]
+import knowledge_base.people.utils as people_utils
 
 def add_new_liking_to_person(person_name: str, new_liking: str) -> str:
     """
@@ -33,4 +31,4 @@ def call_function(name: str, args: dict):
         return add_new_liking_to_person(**args)
     if name == "add_new_disliking_to_person":
         return add_new_disliking_to_person(**args)
-    raise ValueError(f"Function '{name}' not found")
+    raise ValueError(f"Function 'people.{name}' not found")
