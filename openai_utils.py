@@ -90,16 +90,16 @@ def create_knowledge_base(client: OpenAI) -> VectorStore:
     print(f"Created knowledge_base vector store (ID: {knowledge_base.id})")
     print("Sleeping for 10 seconds...")
     sleep(10)
-    
     data_files = glob.glob("knowledge_base/**/*.json", recursive=True)
     for file_path in data_files:
         file_name = file_path.split("/")[-1]
         with open(file_path, "rb") as f:
             openai_file = client.files.create(file=f, purpose="assistants")
-            print(f"Uploaded {file_name} to OpenAI (ID: {openai_file.id})")
+            print(f"Uploaded {file_name} to OpenAI (ID: {openai_file.id}) - Sleeping for 3 seconds...")
+            sleep(3)
             openai_file = client.vector_stores.files.create(vector_store_id=knowledge_base.id, file_id=openai_file.id)
-            print(f"Attached {file_name} to knowledge_base (ID: {openai_file.id})")
-    
+            print(f"Attached {file_name} to knowledge_base (ID: {openai_file.id}) - Sleeping for 3 seconds...")
+            sleep(3)
     return knowledge_base
 
 def get_knowledge_base(client: OpenAI = None) -> VectorStore:
