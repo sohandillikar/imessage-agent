@@ -47,7 +47,7 @@ def get_user_info() -> dict | None:
     for person in people:
         if "self" in person["relations"]:
             return person
-    print("WARNING: No user info found in knowledge_base/people/people.json!")
+    print("WARNING: No user info found in knowledge_base/people/people.json")
     return None
 
 def get_person_info_by_sender_id(sender_id: str) -> dict | None:

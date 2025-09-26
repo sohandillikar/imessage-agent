@@ -1,8 +1,6 @@
 import os
-import ast
 import glob
 import json
-import utils
 from typing import Any
 from time import sleep
 from openai import OpenAI
@@ -13,77 +11,6 @@ from openai.types.responses.response import Response
 import knowledge_base.people.utils as people_utils
 
 load_dotenv()
-
-# TODO: Modify for enum (https://platform.openai.com/docs/guides/function-calling)
-def get_tools_from_file(file_path: str, module_name: str = None, avoid_functions: list[str] = []) -> list[dict]:
-    with open(file_path, "r") as f:
-        tree = ast.parse(f.read())
-    
-    tools = []
-
-    for node in ast.walk(tree):
-        if isinstance(node, ast.FunctionDef) and node.name not in avoid_functions:
-            function_name = node.name
-            if module_name is not None:
-                function_name = f"{module_name}-{function_name}"
-            description = ast.get_docstring(node)
-            properties = {}
-            required = []
-            required_args = len(node.args.args) - len(node.args.defaults)
-
-            for i, arg in enumerate(node.args.args):
-                arg_name = arg.arg
-                arg_type = utils.python_to_json_type(ast.unparse(arg.annotation))
-                arg_description = utils.get_arg_description(arg.arg, description)
-                if arg_description is None:
-                    print(f"WARNING: No description found for '{arg_name}' in {function_name}!")
-                    arg_description = ""
-                properties[arg_name] = {"type": arg_type, "description": arg_description}
-                if i < required_args:
-                    required.append(arg_name)
-            
-            tools.append({
-                "type": "function",
-                "name": function_name,
-                "description": description,
-                "parameters": {
-                    "type": "object",
-                    "properties": properties,
-                    "required": required
-                }
-            })
-    
-    return tools
-
-def get_all_tools(web_search: bool = False, file_search: bool = False) -> list[dict]:
-    tools = []
-    tool_files = ["tools/tools.py"] + glob.glob("knowledge_base/**/tools.py", recursive=True)
-
-    for file_path in tool_files:
-        folder_name = file_path.split("/")[-2]
-        tools += get_tools_from_file(file_path, module_name=folder_name, avoid_functions=["call_function"])
-    
-    if web_search:
-        country = os.getenv("COUNTRY")
-        timezone = os.getenv("TIMEZONE")
-        tools.append({
-            "type": "web_search",
-            "user_location": {
-                "type": "approximate",
-                "country": country,
-                "timezone": timezone
-            }
-        })
-
-    if file_search:
-        knowledge_base = get_knowledge_base()
-        tools.append({
-            "type": "file_search",
-            "vector_store_ids": [knowledge_base.id],
-        })
-        print(f"Using knowledge_base (ID: {knowledge_base.id}) for file search\n")
-
-    return tools
 
 def create_knowledge_base(client: OpenAI = None) -> VectorStore:
     if client is None:
@@ -157,7 +84,7 @@ def create_system_prompt(sender_id: str = None, chat_id: str = None) -> str:
         return prompt
     else:
         # TODO: Create system prompt for group chats
-        print(f"WARNING: No system prompt creation for group chats!")
+        print(f"WARNING: No system prompt creation for group chats")
 
 def create_response(client: OpenAI, input_messages: list[Any], tools: list[dict] = []) -> tuple[Response, list[Any]]:
     response = client.responses.create(
