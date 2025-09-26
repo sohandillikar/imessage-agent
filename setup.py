@@ -6,12 +6,10 @@ from openai import OpenAI
 load_dotenv()
 
 def setup(update_knowledge_base: bool = True) -> OpenAI:
-    if not os.getenv("OPENAI_API_KEY"):
-        raise ValueError("OPENAI_API_KEY is not set in .env")
-    if not os.getenv("COUNTRY"):
-        raise ValueError("COUNTRY is not set in .env")
-    if not os.getenv("TIMEZONE"):
-        raise ValueError("TIMEZONE is not set in .env")
+    env_vars = ["IMESSAGES_DB_PATH", "CONTACTS_DB_PATH", "OPENAI_API_KEY", "COUNTRY", "TIMEZONE"]
+    for env_var in env_vars:
+        if not os.getenv(env_var):
+            raise ValueError(f"{env_var} is not set in .env")
     
     # Check if knowledge_base vector store exists
     client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))

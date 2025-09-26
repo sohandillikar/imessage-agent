@@ -1,11 +1,13 @@
 import os
 import json
 import sqlite3
+from dotenv import load_dotenv
 from dataclasses import dataclass
-from .config import MAC_USER
 import apple_db.utils as utils
 
-DB_PATH = f"/Users/{MAC_USER}/Library/Messages/chat.db"
+load_dotenv()
+
+DB_PATH = os.getenv("IMESSAGES_DB_PATH")
 
 @dataclass
 class Message:
