@@ -10,7 +10,16 @@ def add_new_liking_to_person(person_name: str, new_liking: str) -> str:
     Returns:
         str: Status of the update operation (e.g. "success", "error")
     """
-    print(f"Adding liking {new_liking} to {person_name}")
+    person = people_utils.find_person_by_name(person_name)
+    if person is None:
+        person = people_utils.create_new_person(person_name, likes=[new_liking])
+    else:
+        people = people_utils.get_people()
+        for p in people:
+            if p["id"] == person["id"]:
+                p["likes"].append(new_liking)
+                break
+        people_utils.update_people(people)
     return "success"
 
 def add_new_disliking_to_person(person_name: str, new_disliking: str) -> str:
@@ -23,7 +32,16 @@ def add_new_disliking_to_person(person_name: str, new_disliking: str) -> str:
     Returns:
         str: Status of the update operation (e.g. "success", "error")
     """
-    print(f"Adding disliking {new_disliking} to {person_name}")
+    person = people_utils.find_person_by_name(person_name)
+    if person is None:
+        person = people_utils.create_new_person(person_name, dislikes=[new_disliking])
+    else:
+        people = people_utils.get_people()
+        for p in people:
+            if p["id"] == person["id"]:
+                p["dislikes"].append(new_disliking)
+                break
+        people_utils.update_people(people)
     return "success"
 
 def call_function(name: str, args: dict):
