@@ -63,3 +63,10 @@ def find_person_by_name(name: str) -> dict | None:
     if match[1] >= 90:
         return all_names[match[0]]
     return None
+
+def remove_similar_items(target: str, items: list[str], score_cutoff: int = 70) -> list[str]:
+    items = [item.lower().strip() for item in items]
+    matches = process.extract(target, items, score_cutoff=score_cutoff)
+    matches = [match[0] for match in matches]
+    filtered_items = [item for item in items if item not in matches]
+    return filtered_items
