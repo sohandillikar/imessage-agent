@@ -1,5 +1,10 @@
+import os
+import sys
 import json
 from rapidfuzz import process
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+import openai_utils
 
 def get_people() -> list[dict]:
     with open(f"knowledge_base/people/people.json", "r") as f:
@@ -8,6 +13,7 @@ def get_people() -> list[dict]:
 def update_people(people: list[dict]) -> None:
     with open(f"knowledge_base/people/people.json", "w") as f:
         json.dump(people, f, indent=4)
+    openai_utils.update_knowledge_base(data_file_paths=["knowledge_base/people/people.json"])
 
 def create_new_person(
     full_name: str,

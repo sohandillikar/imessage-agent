@@ -92,23 +92,25 @@ def create_knowledge_base(client: OpenAI = None) -> VectorStore:
     print(f"Created knowledge_base vector store (ID: {knowledge_base.id})")
     print("Sleeping for 5 seconds...\n")
     sleep(5)
-    update_knowledge_base(client)
     return knowledge_base
 
-def update_knowledge_base(client: OpenAI = None, data_file_paths: list[str] = None) -> VectorStore:
+def update_knowledge_base(client: OpenAI = None, knowledge_base: VectorStore = None, data_file_paths: list[str] = None) -> VectorStore:
     if client is None:
         client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+    if knowledge_base is None:
+        knowledge_base = get_knowledge_base(client)
     if data_file_paths is None:
         data_file_paths = glob.glob("knowledge_base/**/*.json", recursive=True)
     
     data_file_names = [os.path.basename(fp) for fp in data_file_paths]
     data_files = [open(fp, "rb") for fp in data_file_paths]
-    
-    knowledge_base = get_knowledge_base(client)
     knowledge_base_files = client.vector_stores.files.list(vector_store_id=knowledge_base.id).data
     
     for file in knowledge_base_files:
-        file_name = client.files.retrieve(file.id).filename
+        try:
+            file_name = client.files.retrieve(file.id).filename
+        except Exception:
+            continue
         if file_name in data_file_names:
             response = client.files.delete(file.id)
             if response.deleted:

@@ -2,7 +2,7 @@ import openai_utils
 from setup import setup
 import knowledge_base.people.utils as people_utils
 
-client = setup()
+client = setup(update_knowledge_base=False)
 
 sender_id = "+15107503277"
 person = people_utils.get_person_info_by_sender_id(sender_id)
