@@ -95,23 +95,32 @@ def create_knowledge_base(client: OpenAI = None) -> VectorStore:
     update_knowledge_base(client)
     return knowledge_base
 
-def update_knowledge_base(client: OpenAI = None) -> VectorStore:
+def update_knowledge_base(client: OpenAI = None, data_file_paths: list[str] = None) -> VectorStore:
     if client is None:
         client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+    if data_file_paths is None:
+        data_file_paths = glob.glob("knowledge_base/**/*.json", recursive=True)
+    
+    data_file_names = [os.path.basename(fp) for fp in data_file_paths]
+    data_files = [open(fp, "rb") for fp in data_file_paths]
+    
     knowledge_base = get_knowledge_base(client)
     knowledge_base_files = client.vector_stores.files.list(vector_store_id=knowledge_base.id).data
+    
     for file in knowledge_base_files:
-        response = client.files.delete(file.id)
-        if response.deleted:
-            print(f"Deleted {response.id} from knowledge_base\n")
-        else:
-            print(f"WARNING: Failed to delete {response.id} from knowledge_base\n")
-    data_file_paths = glob.glob("knowledge_base/**/*.json", recursive=True)
-    data_files = [open(fp, "rb") for fp in data_file_paths]
+        file_name = client.files.retrieve(file.id).filename
+        if file_name in data_file_names:
+            response = client.files.delete(file.id)
+            if response.deleted:
+                print(f"Deleted {file_name} ({response.id}) from knowledge_base\n")
+            else:
+                print(f"WARNING: Failed to delete {file_name} ({response.id}) from knowledge_base\n")
+    
     response = client.vector_stores.file_batches.upload_and_poll(vector_store_id=knowledge_base.id, files=data_files)
     if response.file_counts.completed != len(data_files):
         print(f"WARNING: Failed to upload {len(data_files) - response.file_counts.completed} file(s) to knowledge_base\n")
     print(f"Uploaded {response.file_counts.completed} file(s) to knowledge_base\n")
+    
     return knowledge_base
 
 def get_knowledge_base(client: OpenAI = None) -> VectorStore:
