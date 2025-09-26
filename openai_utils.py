@@ -3,8 +3,8 @@ import ast
 import glob
 import json
 import utils
-from time import sleep
 from typing import Any
+from time import sleep
 from openai import OpenAI
 from dotenv import load_dotenv
 from tools.tools import call_function
@@ -85,23 +85,33 @@ def get_all_tools(web_search: bool = False, file_search: bool = False) -> list[d
 
     return tools
 
-def create_knowledge_base(client: OpenAI) -> VectorStore:
+def create_knowledge_base(client: OpenAI = None) -> VectorStore:
+    if client is None:
+        client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
     knowledge_base = client.vector_stores.create(name="knowledge_base")
     print(f"Created knowledge_base vector store (ID: {knowledge_base.id})")
-    print("Sleeping for 10 seconds...\n")
-    sleep(10)
-    data_files = glob.glob("knowledge_base/**/*.json", recursive=True)
-    for file_path in data_files:
-        file_name = file_path.split("/")[-1]
-        with open(file_path, "rb") as f:
-            openai_file = client.files.create(file=f, purpose="assistants")
-            print(f"Uploaded {file_name} to OpenAI (ID: {openai_file.id})")
-            print("Sleeping for 3 seconds...\n")
-            sleep(3)
-            openai_file = client.vector_stores.files.create(vector_store_id=knowledge_base.id, file_id=openai_file.id)
-            print(f"Attached {file_name} to knowledge_base (ID: {openai_file.id})")
-            print("Sleeping for 3 seconds...\n")
-            sleep(3)
+    print("Sleeping for 5 seconds...\n")
+    sleep(5)
+    update_knowledge_base(client)
+    return knowledge_base
+
+def update_knowledge_base(client: OpenAI = None) -> VectorStore:
+    if client is None:
+        client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+    knowledge_base = get_knowledge_base(client)
+    knowledge_base_files = client.vector_stores.files.list(vector_store_id=knowledge_base.id).data
+    for file in knowledge_base_files:
+        response = client.files.delete(file.id)
+        if response.deleted:
+            print(f"Deleted {response.id} from knowledge_base\n")
+        else:
+            print(f"WARNING: Failed to delete {response.id} from knowledge_base\n")
+    data_file_paths = glob.glob("knowledge_base/**/*.json", recursive=True)
+    data_files = [open(fp, "rb") for fp in data_file_paths]
+    response = client.vector_stores.file_batches.upload_and_poll(vector_store_id=knowledge_base.id, files=data_files)
+    if response.file_counts.completed != len(data_files):
+        print(f"WARNING: Failed to upload {len(data_files) - response.file_counts.completed} file(s) to knowledge_base\n")
+    print(f"Uploaded {response.file_counts.completed} file(s) to knowledge_base\n")
     return knowledge_base
 
 def get_knowledge_base(client: OpenAI = None) -> VectorStore:
