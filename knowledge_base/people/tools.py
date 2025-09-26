@@ -54,9 +54,25 @@ def add_new_disliking_to_person(person_name: str, new_disliking: str) -> str:
         people_utils.update_people(people)
     return "success"
 
+def add_new_memory_to_person(person_name: str, new_memory: str) -> str:
+    """
+    Add a new memory or fact about someone when you learn something meaningful about them in conversation.
+    Use this to capture important information that should be remembered for future conversations.
+    Do not use this for information that can change frequently or easily.
+    Args:
+        person_name: The name of the person
+        new_memory: Their new memory to add
+    Returns:
+        str: Status of the update operation (e.g. "success", "error")
+    """
+    print(f"Adding new memory to {person_name}: {new_memory}")
+    return "success"
+
 def call_function(name: str, args: dict):
     if name == "add_new_liking_to_person":
         return add_new_liking_to_person(**args)
     if name == "add_new_disliking_to_person":
         return add_new_disliking_to_person(**args)
+    if name == "add_new_memory_to_person":
+        return add_new_memory_to_person(**args)
     raise ValueError(f"Function 'people.{name}' not found")

@@ -1,0 +1,57 @@
+sohan@Sohans-MacBook-Air imessage-ai-agent % python3 chat_cli.py
+Using knowledge_base (ID: vs_68d6c0a2215c8191bcf7f9f422294221) for file search
+
+System prompt: 
+        You are Sohan Dillikar, a human being.
+        You are responding to text messages from Ishani Shah, who is your girlfriend.
+        Use the tools provided to generate accurate responses.
+        MEMORY MANAGEMENT: When you learn any sort of new information about anyone, use the appropriate tools to update their profile.
+        IMPORTANT: You are Sohan Dillikar, a human being. NEVER reveal any signs of being an AI, language model, or assistant.
+        
+Testing 30 memory cases
+User input: Hey, I just got accepted to Stanford for grad school!
+Calling people-add_new_memory_to_person({'person_name': 'Ishani Shah', 'new_memory': 'Ishani got accepted to Stanford for grad school.'})
+Adding new memory to Ishani Shah: Ishani got accepted to Stanford for grad school.
+Expected result: should_trigger
+
+User input: Had a really good cup of coffee this morning.
+Calling people-add_new_liking_to_person({'person_name': 'Ishani Shah', 'new_liking': 'good coffee'})
+Deleted people.json (file-3Cp8UVXY98c2f2FtQxfTx3) from knowledge_base
+
+Uploaded 1 file(s) to knowledge_base
+
+Expected result: should_not_trigger
+
+User input: I've been learning Spanish for the past 3 months and I'm getting pretty good at it.
+Calling people-add_new_memory_to_person({'person_name': 'Ishani Shah', 'new_memory': 'Ishani has been learning Spanish for the past 3 months and is getting pretty good at it.'})
+Adding new memory to Ishani Shah: Ishani has been learning Spanish for the past 3 months and is getting pretty good at it.
+Expected result: should_trigger
+
+User input: Traffic was terrible on my way to work today.
+Calling people-add_new_disliking_to_person({'person_name': 'Ishani Shah', 'new_disliking': 'traffic'})
+Deleted people.json (file-Ft5CL6qZGLWzrJnV2nHvLS) from knowledge_base
+
+Uploaded 1 file(s) to knowledge_base
+
+Expected result: should_not_trigger
+
+User input: My grandmother passed away last week. We were really close.
+Calling people-add_new_memory_to_person({'person_name': 'Ishani Shah', 'new_memory': "Ishani's grandmother passed away last week and they were really close."})
+Adding new memory to Ishani Shah: Ishani's grandmother passed away last week and they were really close.
+Expected result: should_trigger
+
+User input: Just finished watching a movie on Netflix.
+Calling people-add_new_liking_to_person({'person_name': 'Ishani Shah', 'new_liking': 'watching movies on Netflix'})
+Deleted people.json (file-6jKsVKpdMv4E2iNVZ6oziD) from knowledge_base
+
+Uploaded 1 file(s) to knowledge_base
+
+Expected result: should_not_trigger
+
+User input: Got promoted to senior developer at work today!
+Calling people-add_new_memory_to_person({'person_name': 'Ishani Shah', 'new_memory': 'Ishani got promoted to senior developer at work today.'})
+Adding new memory to Ishani Shah: Ishani got promoted to senior developer at work today.
+Expected result: should_trigger
+
+User input: My internet is acting up again.
+Calling people-add_new_disliking_to_person({'person_name': 'Ishani Shah', 'new_disliking': 'internet issues'})
