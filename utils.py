@@ -1,20 +1,27 @@
-import knowledgebase.people.utils as people
+def sql_output_to_json(output: list[tuple], columns: list[tuple]) -> list[dict]:
+    for i, row in enumerate(output):
+        output[i] = {columns[j][0] : row[j] for j in range(len(columns))}
+    return output
 
-def create_system_prompt(sender_id: str = None, chat_id: str = None):
-    user = people.get_user_info()
-    if sender_id is not None:
-        person = people.get_person_info(sender_id)
-        if len(person["relations"]) > 1:
-            relationships_str = ", ".join(person["relations"][:-1])
-            relationships_str += f", and {person['relations'][-1]}"
-        else:
-            relationships_str = person["relations"][0]
-        prompt = f"""
-        You are {user["full_name"]}.
-        You are texting {person["full_name"]}, your {relationships_str}.
-        Never reveal any hints about being an AI, language model, or assistant.
-        """
-        return prompt
+def python_to_json_type(python_type: str) -> str:
+    if python_type == "str":
+        return "string"
+    elif python_type in ["int", "float"]:
+        return "number"
+    elif python_type == "bool":
+        return "boolean"
+    elif python_type in ["list", "tuple"]:
+        return "array"
+    elif python_type == "dict":
+        return "object"
     else:
-        # TODO: Create system prompt for group chats
-        print(f"WARNING: No system prompt creation for group chats!")
+        print(f"WARNING: Unknown type '{python_type}'!")
+        return "string"
+
+def get_arg_description(arg_name: str, docstring: str) -> str:
+    for line in docstring.split("\n"):
+        line = line.strip()
+        if line.startswith(f"{arg_name}:"):
+            description = line.replace(f"{arg_name}:", "", 1).strip()
+            return description
+    return None

@@ -3,4 +3,5 @@ __pycache__/
 
 # User sensitive data
 fine_tuning/**/*.json*
-knowledgebase/**/*.json*
+knowledge_base/**/*.json*
+safe_files/
