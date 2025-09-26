@@ -81,24 +81,26 @@ def get_all_tools(web_search: bool = False, file_search: bool = False) -> list[d
             "type": "file_search",
             "vector_store_ids": [knowledge_base.id],
         })
-        print(f"Using knowledge_base (ID: {knowledge_base.id}) for file search")
+        print(f"Using knowledge_base (ID: {knowledge_base.id}) for file search\n")
 
     return tools
 
 def create_knowledge_base(client: OpenAI) -> VectorStore:
     knowledge_base = client.vector_stores.create(name="knowledge_base")
     print(f"Created knowledge_base vector store (ID: {knowledge_base.id})")
-    print("Sleeping for 10 seconds...")
+    print("Sleeping for 10 seconds...\n")
     sleep(10)
     data_files = glob.glob("knowledge_base/**/*.json", recursive=True)
     for file_path in data_files:
         file_name = file_path.split("/")[-1]
         with open(file_path, "rb") as f:
             openai_file = client.files.create(file=f, purpose="assistants")
-            print(f"Uploaded {file_name} to OpenAI (ID: {openai_file.id}) - Sleeping for 3 seconds...")
+            print(f"Uploaded {file_name} to OpenAI (ID: {openai_file.id})")
+            print("Sleeping for 3 seconds...\n")
             sleep(3)
             openai_file = client.vector_stores.files.create(vector_store_id=knowledge_base.id, file_id=openai_file.id)
-            print(f"Attached {file_name} to knowledge_base (ID: {openai_file.id}) - Sleeping for 3 seconds...")
+            print(f"Attached {file_name} to knowledge_base (ID: {openai_file.id})")
+            print("Sleeping for 3 seconds...\n")
             sleep(3)
     return knowledge_base
 
@@ -108,11 +110,11 @@ def get_knowledge_base(client: OpenAI = None) -> VectorStore:
     vector_stores = client.vector_stores.list().data
     knowledge_base = [vs for vs in vector_stores if vs.name == "knowledge_base"]
     if len(knowledge_base) == 0:
-        print("WARNING: No knowledge base vector store found!")
+        print("WARNING: No knowledge base vector store found!\n")
         knowledge_base = create_knowledge_base(client)
         return knowledge_base
     if len(knowledge_base) > 1:
-        print(f"WARNING: Multiple knowledge base vector stores found! Proceeding with {knowledge_base[0].id}")
+        print(f"WARNING: Multiple knowledge base vector stores found! Proceeding with {knowledge_base[0].id}\n")
     return knowledge_base[0]
 
 def create_system_prompt(sender_id: str = None, chat_id: str = None) -> str:

@@ -20,4 +20,4 @@ while True:
     response, messages = openai_utils.create_response(client, messages, tools=tools)
     if len(messages) > 20:
         messages = messages[-20:]
-    print(f"{response.output_text} ({response.usage.total_tokens} tokens)")
+    print(f"{response.output_text} ({response.usage.total_tokens} tokens)\n")
