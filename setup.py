@@ -2,6 +2,7 @@ import os
 import openai_utils
 from dotenv import load_dotenv
 from openai import OpenAI
+from knowledge_base.journals.utils import load_journals
 
 load_dotenv()
 
@@ -15,6 +16,7 @@ def setup(update_knowledge_base: bool = True) -> OpenAI:
     client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
     knowledge_base = openai_utils.get_knowledge_base(client)
     if update_knowledge_base:
+        load_journals()
         openai_utils.update_knowledge_base(client, knowledge_base)
     
     return client
