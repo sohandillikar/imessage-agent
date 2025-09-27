@@ -90,7 +90,7 @@ def create_response(client: OpenAI, input_messages: list[Any], tools: list[dict]
         model="gpt-4o-mini",
         input=input_messages,
         tools=tools,
-        temperature=0.7,
+        temperature=1,
         max_output_tokens=2048,
         include=["web_search_call.action.sources", "file_search_call.results"]
     )
