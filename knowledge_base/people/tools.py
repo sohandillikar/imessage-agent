@@ -1,3 +1,4 @@
+from datetime import datetime
 import knowledge_base.people.utils as people_utils
 
 def add_liking_to_person(person_name: str, liking: str) -> str:
@@ -67,6 +68,18 @@ def add_fact_to_person(person_name: str, fact: str) -> str:
     Returns:
         str: Status of the update operation (e.g. "success", "error")
     """
+    fact = fact.lower().strip()
+    memory = {"date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "memory": fact}
+    person = people_utils.find_person_by_name(person_name)
+    if person is None:
+        person = people_utils.create_new_person(person_name, memories=[memory])
+    else:
+        people = people_utils.get_people()
+        for p in people:
+            if p["id"] == person["id"]:
+                p["memories"].append(memory)
+                break
+        people_utils.update_people(people)
     return "success"
 
 def call_function(name: str, args: dict):
