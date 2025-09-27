@@ -25,7 +25,8 @@ def create_new_person(
     occupations: list[str] = [],
     history: list[str] = [],
     likes: list[str] = [],
-    dislikes: list[str] = []) -> dict:
+    dislikes: list[str] = [],
+    memories: list[dict] = []) -> dict:
     people = get_people()
     person_id = max([person["id"] for person in people]) + 1
     people.append({
@@ -39,7 +40,8 @@ def create_new_person(
         "occupations": occupations,
         "history": history,
         "likes": likes,
-        "dislikes": dislikes
+        "dislikes": dislikes,
+        "memories": memories
     })
     update_people(people)
     return people[-1]
