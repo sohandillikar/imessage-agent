@@ -17,6 +17,7 @@ def update_people(people: list[dict]) -> None:
 
 def create_new_person(
     full_name: str,
+    gender: str = None,
     email: str = None,
     phone: str = None,
     nicknames: list[str] = [],
@@ -30,6 +31,7 @@ def create_new_person(
     people.append({
         "id": person_id,
         "full_name": full_name,
+        "gender": gender,
         "email": email,
         "phone": phone,
         "nicknames": nicknames,
