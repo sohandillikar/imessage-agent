@@ -51,5 +51,3 @@ def get_current_location():
         "longitude": delegate.longitude,
         "address": address
     }
-
-print(get_current_location())

@@ -6,7 +6,8 @@ I'm training an AI to understand my life and feelings so well, that it can respo
 
 ### I'm giving it access to:
 
-- Read all my iMessage conversations
-- Read and analyze my journal entries (I journal 2x daily)
-- Read and modify my Google Calendar + Tasks
+- All my iMessage conversations
+- All my journal entries (I journal 2x daily)
+- My Google Calendar + Tasks
+- My 24/7 location
 - _And more..._
