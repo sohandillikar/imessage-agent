@@ -1,5 +1,6 @@
 from datetime import datetime
-import knowledge_base.people.tools as people_tools
+import tools.people.tools as people_tools
+import tools.location.tools as location_tools
 
 # https://platform.openai.com/docs/guides/function-calling
 # If your function has no return value (e.g. send_email),
@@ -30,4 +31,6 @@ def call_function(name: str, args: dict):
             return get_current_time(**args)
     if module == "people":
         return people_tools.call_function(func, args)
+    if module == "location":
+        return location_tools.call_function(func, args)
     raise ValueError(f"Function '{module}.{func}' not found")

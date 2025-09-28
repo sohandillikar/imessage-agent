@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 from tools.tools import call_function
 from openai.types.vector_store import VectorStore
 from openai.types.responses.response import Response
-import knowledge_base.people.utils as people_utils
+import tools.people.utils as people_utils
 
 load_dotenv()
 
@@ -27,7 +27,7 @@ def update_knowledge_base(client: OpenAI = None, knowledge_base: VectorStore = N
     if knowledge_base is None:
         knowledge_base = get_knowledge_base(client)
     if data_file_paths is None:
-        data_file_paths = glob.glob("knowledge_base/**/*.json", recursive=True)
+        data_file_paths = glob.glob("knowledge_base/*.json")
     
     data_file_names = [os.path.basename(fp) for fp in data_file_paths]
     data_files = [open(fp, "rb") for fp in data_file_paths]
@@ -90,9 +90,9 @@ def create_response(client: OpenAI, input_messages: list[Any], tools: list[dict]
         model="gpt-4o-mini",
         input=input_messages,
         tools=tools,
-        temperature=1,
+        temperature=0.3,
         max_output_tokens=2048,
-        include=["web_search_call.action.sources", "file_search_call.results"]
+        include=["file_search_call.results"] # "web_search_call.action.sources"
     )
     input_messages += response.output
     for output_item in response.output:
@@ -106,8 +106,11 @@ def create_response(client: OpenAI, input_messages: list[Any], tools: list[dict]
             })
             return create_response(client, input_messages, tools)
         if output_item.type == "web_search_call":
+            print(f"Made a web search call")
+            """
             for source in output_item.action.sources:
                 print(f"Source: {source.url}")
+            """
         if output_item.type == "file_search_call":
             print(f"File search queries: {output_item.queries}")
     return response, input_messages

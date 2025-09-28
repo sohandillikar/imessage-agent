@@ -1,7 +1,7 @@
 import openai_utils
 from setup import setup
 from tools.tools_list import get_all_tools
-import knowledge_base.people.utils as people_utils
+import tools.people.utils as people_utils
 
 client = setup(update_knowledge_base=False)
 
@@ -21,4 +21,5 @@ while True:
     response, messages = openai_utils.create_response(client, messages, tools=tools)
     if len(messages) > 20:
         messages = messages[-20:]
+        print("Messages trimmed to last 20")
     print(f"{response.output_text} ({response.usage.total_tokens} tokens)\n")

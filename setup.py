@@ -2,9 +2,12 @@ import os
 import openai_utils
 from dotenv import load_dotenv
 from openai import OpenAI
-from knowledge_base.journals.utils import load_journals
+from tools.journals.utils import load_journals
 
 load_dotenv()
+
+# Give full disk access to Terminal or IDE
+# Give location permissions to Python
 
 def setup(update_knowledge_base: bool = True) -> OpenAI:
     env_vars = ["IMESSAGES_DB_PATH", "CONTACTS_DB_PATH", "OPENAI_API_KEY", "COUNTRY", "TIMEZONE"]

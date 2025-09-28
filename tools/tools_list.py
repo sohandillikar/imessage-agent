@@ -68,7 +68,7 @@ def get_tools_from_file(file_path: str, module_name: str = None, avoid_functions
 
 def get_all_tools(web_search: bool = False, file_search: bool = False) -> list[dict]:
     tools = []
-    tool_files = ["tools/tools.py"] + glob.glob("knowledge_base/**/tools.py", recursive=True)
+    tool_files = glob.glob("tools/**/tools.py", recursive=True)
 
     for file_path in tool_files:
         folder_name = file_path.split("/")[-2]
