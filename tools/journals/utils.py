@@ -1,8 +1,11 @@
 import os
 import json
 import glob
+from dotenv import load_dotenv
 from datetime import datetime
 from emoji import replace_emoji
+
+load_dotenv()
 
 def get_journals() -> list[dict]:
     with open(f"knowledge_base/journals.json", "r") as f:
@@ -13,9 +16,21 @@ def update_journals(journals: list[dict]) -> None:
         json.dump(journals, f, indent=4)
     # openai_utils.update_knowledge_base(data_file_paths=["knowledge_base/journals.json"])
 
+def parse_entry(entry_lines: list[str]) -> list[dict]:
+    rosebud_name = os.getenv("ROSEBUD_NAME")
+    entry = "\n".join([line for line in entry_lines if line])
+    entries = [e for e in entry.split("**Rosebud:**") if e]
+    for i in range(len(entries)):
+        question, answer = entries[i].split(f"**{rosebud_name}:**", 1)
+        question = replace_emoji(question.split("\n")[-2]).strip()
+        answer = replace_emoji(answer).strip()
+        entries[i] = {"question": question, "answer": answer}
+    return entries
+
 def parse_journal(file_path: str) -> dict:
     with open(file_path, "r") as f:
         content = f.read()
+    lines = content.split("\n")
     
     title = None
     date_formatted = None
@@ -23,11 +38,8 @@ def parse_journal(file_path: str) -> dict:
     people = []
     topics = []
     entries = []
-    reading_entry = False
 
-    for line in content.split("\n"):
-        if line.strip() == "#### Entry":
-            reading_entry = True
+    for i, line in enumerate(lines):
         if line.startswith("##") and title is None:
             title = replace_emoji(line.replace("##", "")).strip()
         elif line.startswith("###") and date_formatted is None:
@@ -41,12 +53,9 @@ def parse_journal(file_path: str) -> dict:
         elif line.startswith("**Topics:**"):
             topics = line.replace("**Topics:**", "").strip().split(",")
             topics = [t.strip() for t in topics]
-        elif line.startswith("**Rosebud:**"):
-            question = replace_emoji(line.replace("**Rosebud:**", "")).strip()
-            entries.append({"question": question})
-        elif line.startswith("**") and reading_entry:
-            answer = replace_emoji(line.split(":**", 1)[1]).strip()
-            entries[-1]["answer"] = answer
+        elif line.strip() == "#### Entry":
+            entries = parse_entry(lines[i+1:])
+            break
 
     return {
         "title": title,
@@ -57,7 +66,7 @@ def parse_journal(file_path: str) -> dict:
         "entries": entries
     }
 
-def load_journals(new_only: bool = True) -> list[dict]:
+def load_journals(new_only: bool = False) -> list[dict]:
     journals = get_journals()
     journal_dates = [j["date"] for j in journals]
     journal_file_paths = glob.glob("knowledge_base/rosebud_entries/rosebud-entry-*.md")
