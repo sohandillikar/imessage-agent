@@ -1,5 +1,5 @@
 from datetime import datetime
-import knowledge_base.people.utils as people_utils
+import tools.people.utils as people_utils
 
 def add_liking_to_person(person_name: str, liking: str) -> str:
     """

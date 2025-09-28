@@ -2,7 +2,7 @@ import os
 import openai_utils
 from dotenv import load_dotenv
 from openai import OpenAI
-from knowledge_base.journals.utils import load_journals
+from tools.journals.utils import load_journals
 
 load_dotenv()
 

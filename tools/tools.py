@@ -1,5 +1,5 @@
 from datetime import datetime
-import knowledge_base.people.tools as people_tools
+import tools.people.tools as people_tools
 
 # https://platform.openai.com/docs/guides/function-calling
 # If your function has no return value (e.g. send_email),
