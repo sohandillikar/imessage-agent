@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Location Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 0;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            display: none;
+        }
+        .success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .info {
+            background-color: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+        pre {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 3px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌍 Get Your Location</h1>
+        <p>Click the button below to get your current location using your browser's location services.</p>
+        
+        <button onclick="getLocation()" id="locationBtn">Get My Location</button>
+        <button onclick="sendLocationToServer()" id="sendBtn" disabled>Send to Server</button>
+        
+        <div id="result" class="result"></div>
+        <div id="locationData" style="display: none;"></div>
+    </div>
+
+    <script>
+        let currentLocation = null;
+
+        function getLocation() {
+            const resultDiv = document.getElementById('result');
+            const locationBtn = document.getElementById('locationBtn');
+            const sendBtn = document.getElementById('sendBtn');
+            
+            // Check if geolocation is supported
+            if (!navigator.geolocation) {
+                showResult('Geolocation is not supported by this browser.', 'error');
+                return;
+            }
+
+            // Show loading state
+            locationBtn.disabled = true;
+            locationBtn.textContent = 'Getting Location...';
+            showResult('Getting your location...', 'info');
+
+            // Get current position with high accuracy
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    currentLocation = {
+                        latitude: position.coords.latitude,
+                        longitude: position.coords.longitude,
+                        accuracy: position.coords.accuracy,
+                        altitude: position.coords.altitude,
+                        altitudeAccuracy: position.coords.altitudeAccuracy,
+                        heading: position.coords.heading,
+                        speed: position.coords.speed,
+                        timestamp: position.timestamp
+                    };
+
+                    // Display the location data
+                    const locationInfo = `
+                        <h3>📍 Location Found!</h3>
+                        <p><strong>Latitude:</strong> ${currentLocation.latitude}</p>
+                        <p><strong>Longitude:</strong> ${currentLocation.longitude}</p>
+                        <p><strong>Accuracy:</strong> ${currentLocation.accuracy} meters</p>
+                        ${currentLocation.altitude ? `<p><strong>Altitude:</strong> ${currentLocation.altitude} meters</p>` : ''}
+                        <p><strong>Timestamp:</strong> ${new Date(currentLocation.timestamp).toLocaleString()}</p>
+                        
+                        <h4>Raw Data:</h4>
+                        <pre>${JSON.stringify(currentLocation, null, 2)}</pre>
+                    `;
+
+                    showResult(locationInfo, 'success');
+                    
+                    // Enable send button
+                    sendBtn.disabled = false;
+                    locationBtn.disabled = false;
+                    locationBtn.textContent = 'Get My Location';
+                },
+                function(error) {
+                    let errorMessage = '';
+                    switch(error.code) {
+                        case error.PERMISSION_DENIED:
+                            errorMessage = 'Location access denied by user. Please allow location access and try again.';
+                            break;
+                        case error.POSITION_UNAVAILABLE:
+                            errorMessage = 'Location information is unavailable.';
+                            break;
+                        case error.TIMEOUT:
+                            errorMessage = 'Location request timed out.';
+                            break;
+                        default:
+                            errorMessage = 'An unknown error occurred.';
+                            break;
+                    }
+                    
+                    showResult(errorMessage, 'error');
+                    locationBtn.disabled = false;
+                    locationBtn.textContent = 'Get My Location';
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0
+                }
+            );
+        }
+
+        function sendLocationToServer() {
+            if (!currentLocation) {
+                showResult('No location data to send. Get your location first.', 'error');
+                return;
+            }
+
+            const sendBtn = document.getElementById('sendBtn');
+            sendBtn.disabled = true;
+            sendBtn.textContent = 'Sending...';
+
+            fetch('/location', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(currentLocation)
+            })
+            .then(response => response.json())
+            .then(data => {
+                showResult(`
+                    <h3>✅ Location Sent Successfully!</h3>
+                    <p>Server response:</p>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `, 'success');
+            })
+            .catch(error => {
+                showResult(`Error sending location: ${error.message}`, 'error');
+            })
+            .finally(() => {
+                sendBtn.disabled = false;
+                sendBtn.textContent = 'Send to Server';
+            });
+        }
+
+        function showResult(message, type) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = message;
+            resultDiv.className = `result ${type}`;
+            resultDiv.style.display = 'block';
+        }
+    </script>
+</body>
+</html>

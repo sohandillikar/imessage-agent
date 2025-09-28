@@ -4,4 +4,5 @@ __pycache__/
 # User sensitive data
 fine_tuning/**/*.json*
 knowledge_base/**/*.json*
+rosebud_entries/
 safe_files/
