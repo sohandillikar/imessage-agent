@@ -1,7 +1,7 @@
 import openai_utils
 from setup import setup
 from tools.tools_list import get_all_tools
-import knowledge_base.people.utils as people_utils
+import tools.people.utils as people_utils
 
 client = setup(update_knowledge_base=False)
 

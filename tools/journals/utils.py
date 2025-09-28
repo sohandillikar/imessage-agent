@@ -5,13 +5,13 @@ from datetime import datetime
 from emoji import replace_emoji
 
 def get_journals() -> list[dict]:
-    with open(f"knowledge_base/journals/journals.json", "r") as f:
+    with open(f"knowledge_base/journals.json", "r") as f:
         return json.load(f)
 
 def update_journals(journals: list[dict]) -> None:
-    with open(f"knowledge_base/journals/journals.json", "w") as f:
+    with open(f"knowledge_base/journals.json", "w") as f:
         json.dump(journals, f, indent=4)
-    # openai_utils.update_knowledge_base(data_file_paths=["knowledge_base/journals/journals.json"])
+    # openai_utils.update_knowledge_base(data_file_paths=["knowledge_base/journals.json"])
 
 def parse_journal(file_path: str) -> dict:
     with open(file_path, "r") as f:
@@ -60,7 +60,7 @@ def parse_journal(file_path: str) -> dict:
 def load_journals(new_only: bool = True) -> list[dict]:
     journals = get_journals()
     journal_dates = [j["date"] for j in journals]
-    journal_file_paths = glob.glob("knowledge_base/journals/rosebud_entries/rosebud-entry-*.md")
+    journal_file_paths = glob.glob("knowledge_base/rosebud_entries/rosebud-entry-*.md")
 
     for file_path in journal_file_paths:
         file_name = os.path.basename(file_path)

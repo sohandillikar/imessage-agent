@@ -7,13 +7,13 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 import openai_utils
 
 def get_people() -> list[dict]:
-    with open(f"knowledge_base/people/people.json", "r") as f:
+    with open(f"knowledge_base/people.json", "r") as f:
         return json.load(f)
 
 def update_people(people: list[dict]) -> None:
-    with open(f"knowledge_base/people/people.json", "w") as f:
+    with open(f"knowledge_base/people.json", "w") as f:
         json.dump(people, f, indent=4)
-    openai_utils.update_knowledge_base(data_file_paths=["knowledge_base/people/people.json"])
+    openai_utils.update_knowledge_base(data_file_paths=["knowledge_base/people.json"])
 
 def create_new_person(
     full_name: str,
@@ -51,7 +51,7 @@ def get_user_info() -> dict | None:
     for person in people:
         if "self" in person["relations"]:
             return person
-    print("WARNING: No user info found in knowledge_base/people/people.json")
+    print("WARNING: No user info found in knowledge_base/people.json")
     return None
 
 def get_person_info_by_sender_id(sender_id: str) -> dict | None:
