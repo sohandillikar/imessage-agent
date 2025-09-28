@@ -1,17 +1,27 @@
-from CoreLocation import CLLocationManager, kCLLocationAccuracyBest
+import requests
 from PyObjCTools import AppHelper
+from CoreLocation import CLLocationManager, kCLLocationAccuracyBest
+
+def get_address_from_coords(lat: float, lon: float) -> str:
+    url = f"https://nominatim.openstreetmap.org/reverse?lat={lat}&lon={lon}&format=json"
+    try:
+        response = requests.get(url, headers={"User-Agent": "iMessageAgent/1.0"})
+        data = response.json()
+        return data["display_name"]
+    except Exception as e:
+        print(f"Error getting address from ({lat}, {lon}): {e}")
+        return None
 
 class LocationDelegate:
     def __init__(self):
-        self.location = None
+        self.latitude = None
+        self.longitude = None
         self.error = None
     
     def locationManager_didUpdateLocations_(self, manager, locations):
         loc = locations[-1]
-        self.location = {
-            'latitude': loc.coordinate().latitude,
-            'longitude': loc.coordinate().longitude
-        }
+        self.latitude = loc.coordinate().latitude
+        self.longitude = loc.coordinate().longitude
         manager.stopUpdatingLocation()
         AppHelper.stopEventLoop()
     
@@ -20,8 +30,7 @@ class LocationDelegate:
         manager.stopUpdatingLocation()
         AppHelper.stopEventLoop()
 
-def get_location():
-    """Get current location and return latitude, longitude"""
+def get_current_location():
     manager = CLLocationManager.alloc().init()
     delegate = LocationDelegate()
     manager.setDelegate_(delegate)
@@ -33,18 +42,14 @@ def get_location():
     AppHelper.runConsoleEventLoop()
     
     if delegate.error:
-        raise Exception(f"Location error: {delegate.error}")
-    
-    if delegate.location:
-        return delegate.location['latitude'], delegate.location['longitude']
-    else:
-        raise Exception("No location received")
+        print(f"Error getting current location: {delegate.error}")
+        return None
 
-# Example usage
-if __name__ == "__main__":
-    try:
-        lat, lon = get_location()
-        print(f"Latitude: {lat}")
-        print(f"Longitude: {lon}")
-    except Exception as e:
-        print(f"Error: {e}")
+    address = get_address_from_coords(delegate.latitude, delegate.longitude)
+    return {
+        "latitude": delegate.latitude,
+        "longitude": delegate.longitude,
+        "address": address
+    }
+
+print(get_current_location())
