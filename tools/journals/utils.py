@@ -22,7 +22,11 @@ def parse_entry(entry_lines: list[str]) -> list[dict]:
     entries = [e for e in entry.split("**Rosebud:**") if e]
     for i in range(len(entries)):
         question, answer = entries[i].split(f"**{rosebud_name}:**", 1)
-        question = replace_emoji(question.split("\n")[-2]).strip()
+        questions = question.split("\n")
+        for j in range(len(questions) - 1, -1, -1):
+            question = replace_emoji(questions[j]).strip()
+            if question and question.endswith("?"):
+                break
         answer = replace_emoji(answer).strip()
         entries[i] = {"question": question, "answer": answer}
     return entries
