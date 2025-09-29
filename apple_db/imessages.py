@@ -1,9 +1,11 @@
 import os
 import sqlite3
+import subprocess
 from datetime import date
 from dotenv import load_dotenv
 from dataclasses import dataclass
-import utils as apple_db_utils
+import apple_db.utils as apple_db_utils
+import tools.people.utils as people_utils
 
 load_dotenv()
 
@@ -30,7 +32,7 @@ def decode_attributed_body(body: bytes) -> str:
     decoded_body = decoded_body[start_2:][1:].strip()
     return decoded_body
 
-def get_messages(options: str = "") -> list[Message]:
+def get_messages(get_sender_info: bool = False, options: str = "") -> list[Message]:
     if options:
         options = f"AND {options}"
     conn = sqlite3.connect(DB_PATH)
@@ -61,11 +63,18 @@ def get_messages(options: str = "") -> list[Message]:
             messages[i]["content"] = decode_attributed_body(message["attributedBody"])
         del messages[i]["text"]
         del messages[i]["attributedBody"]
+        if get_sender_info:
+            if messages[i]["is_from_me"] == 1:
+                user = people_utils.get_user()
+                messages[i]["sender_info"] = user
+                messages[i]["sender_id"] = user["phone"]
+            else:
+                messages[i]["sender_info"] = people_utils.get_person_by_sender_id(messages[i]["sender_id"])
     cursor.close()
     conn.close()
     return messages
 
-def get_unread_messages(options: str = "") -> list[Message]:
+def get_unread_messages(get_sender_info: bool = False, options: str = "") -> list[Message]:
     if options:
         options = f"AND {options}"
     apple_reference_date = date(2001, 1, 1)
@@ -73,14 +82,14 @@ def get_unread_messages(options: str = "") -> list[Message]:
     diff_seconds = (today - apple_reference_date).total_seconds()
     diff_nanoseconds = int(diff_seconds * 1_000_000_000)
     options = f"m.date > {diff_nanoseconds} {options} AND m.is_read=0 and m.is_from_me=0"
-    return get_messages(options)
+    return get_messages(get_sender_info=get_sender_info, options=options)
 
-def get_conversation_history(message: Message) -> tuple[list[Message], list[str]]:
+def get_conversation_history(message: Message, get_sender_info: bool = False) -> tuple[list[Message], list[str]]:
     conversation_history = []
     current_message = message
     while True:
         options_query = f"m.guid = '{current_message['reply_to_guid']}'"
-        earlier_message = get_messages(options=options_query)
+        earlier_message = get_messages(get_sender_info=get_sender_info, options=options_query)
         if len(earlier_message) > 0:
             earlier_message = earlier_message[0]
             conversation_history.insert(0, earlier_message)
@@ -89,3 +98,13 @@ def get_conversation_history(message: Message) -> tuple[list[Message], list[str]
             break
     conversation_history.append(message)
     return conversation_history
+
+def send_message(message: str, sender_id: str) -> None:
+    script = f"""
+    tell application "Messages"
+        set targetService to 1st service whose service type = iMessage
+        set targetBuddy to participant "{sender_id}" of targetService
+        send "{message}" to targetBuddy
+    end tell
+    """
+    return subprocess.run(['osascript', '-e', script], capture_output=True, text=True, check=True)

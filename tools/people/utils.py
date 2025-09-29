@@ -46,7 +46,7 @@ def create_new_person(
     update_people(people)
     return people[-1]
 
-def get_user_info() -> dict | None:
+def get_user() -> dict | None:
     people = get_people()
     for person in people:
         if "self" in person["relations"]:
@@ -54,7 +54,7 @@ def get_user_info() -> dict | None:
     print("WARNING: No user info found in knowledge_base/people.json")
     return None
 
-def get_person_info_by_sender_id(sender_id: str) -> dict | None:
+def get_person_by_sender_id(sender_id: str) -> dict | None:
     people = get_people()
     for person in people:
         if person["phone"] == sender_id or person["email"] == sender_id:

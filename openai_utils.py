@@ -66,9 +66,9 @@ def get_knowledge_base(client: OpenAI = None) -> VectorStore:
     return knowledge_base[0]
 
 def create_system_prompt(sender_id: str = None, chat_id: str = None) -> str:
-    user = people_utils.get_user_info()
+    user = people_utils.get_user()
     if sender_id is not None:
-        person = people_utils.get_person_info_by_sender_id(sender_id)
+        person = people_utils.get_person_by_sender_id(sender_id)
         if len(person["relations"]) > 1:
             relationships_str = ", ".join(person["relations"][:-1])
             relationships_str += f", and {person['relations'][-1]}"
