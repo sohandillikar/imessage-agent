@@ -1,6 +1,9 @@
 __pycache__/
 .env
 
+# Fine tuning
+fine_tuning/
+
 # User sensitive data
 fine_tuning/**/*.json*
 knowledge_base/

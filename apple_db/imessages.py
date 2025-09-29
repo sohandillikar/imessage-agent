@@ -111,10 +111,10 @@ def get_conversation_history(message: Message, get_sender_info: bool = False, ma
         if len(earlier_message) > 0:
             earlier_message = earlier_message[0]
             conversation_history.insert(0, earlier_message)
-            if max_length and len(conversation_history) >= max_length - 1:
-                break
             current_message = earlier_message
         else:
+            break
+        if max_length and len(conversation_history) >= max_length:
             break
     conversation_history.append(message)
     return conversation_history
