@@ -48,12 +48,18 @@ def create_new_person(
     update_people(people)
     return people[-1]
 
-def create_new_person_from_contact(contact: contacts.Contact) -> dict:
+def create_new_person_from_contact(contact: contacts.Contact, sender_id: str = None) -> dict:
     firstname = contact["firstname"] if contact["firstname"] else ""
     lastname = contact["lastname"] if contact["lastname"] else ""
     full_name = replace_emoji(f"{firstname.title()} {lastname.title()}").strip()
     phone = "+" + contact["phone"]
-    return create_new_person(full_name=full_name, phone=phone, email=contact["email"])
+    email = contact["email"]
+    if sender_id:
+        if "@" in sender_id:
+            email = sender_id
+        else:
+            phone = sender_id
+    return create_new_person(full_name=full_name, phone=phone, email=email)
 
 def get_user() -> dict | None:
     people = get_people()

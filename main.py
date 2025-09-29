@@ -1,12 +1,27 @@
 import apple_db.imessages as imessages
 from tools.tools_list import get_all_tools
 from conversation import Conversation
+from time import sleep
 
-from pprint import pprint
+def loop():
+    unread_messages = imessages.get_unread_messages(get_sender_info=True, group_chats=False, unique_senders_only=True)
+    tools = get_all_tools(web_search=True, file_search=True)
+    conversations = {}
 
-unread_messages = imessages.get_unread_messages(get_sender_info=True, unique_senders_only=True)
-tools = get_all_tools(web_search=True, file_search=True)
+    for message in unread_messages:
+        conversations[message["sender_id"]] = Conversation(message, max_length=20, tools=tools)
+        conversations[message["sender_id"]].respond()
 
-conversation = Conversation(unread_messages[1], max_length=20, tools=tools)
+    while True:
+        for conversation in conversations.values():
+            new_messages = conversation.check_for_new_messages()
+            if new_messages:
+                conversation.respond()
+        sleep(5)
 
-response = conversation.respond()
+if __name__ == "__main__":
+    try:
+        loop()
+    except KeyboardInterrupt:
+        print("Saving conversations...")
+        exit(0)

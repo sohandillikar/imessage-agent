@@ -4,6 +4,7 @@ import glob
 from dotenv import load_dotenv
 from datetime import datetime
 from emoji import replace_emoji
+import tools.people.utils as people_utils
 
 load_dotenv()
 
@@ -17,17 +18,18 @@ def update_journals(journals: list[dict]) -> None:
     # openai_utils.update_knowledge_base(data_file_paths=["knowledge_base/journals.json"])
 
 def parse_entry(entry_lines: list[str]) -> list[dict]:
-    rosebud_name = os.getenv("ROSEBUD_NAME")
+    rosebud_username = os.getenv("ROSEBUD_USERNAME")
+    user = people_utils.get_user()
     entry = "\n".join([line for line in entry_lines if line])
     entries = [e for e in entry.split("**Rosebud:**") if e]
     for i in range(len(entries)):
-        question, answer = entries[i].split(f"**{rosebud_name}:**", 1)
+        question, answer = entries[i].split(f"**{rosebud_username}:**", 1)
         questions = question.split("\n")
         for j in range(len(questions) - 1, -1, -1):
             question = replace_emoji(questions[j]).strip()
             if question and question.endswith("?"):
                 break
-        answer = replace_emoji(answer).strip()
+        answer = f"{user['full_name']}: {replace_emoji(answer).strip()}"
         entries[i] = {"question": question, "answer": answer}
     return entries
 

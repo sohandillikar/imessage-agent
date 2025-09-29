@@ -53,7 +53,7 @@ class Conversation:
         self.trim_conversation()
 
     def check_for_new_messages(self):
-        unread_messages = imessages.get_unread_messages(get_sender_info=True, options=f"sender_id='{self.person2_id}'")
+        unread_messages = imessages.get_unread_messages(get_sender_info=True, group_chats=False, options=f"sender_id='{self.person2_id}'")
         new_messages = []
         current_message_ids = [m["guid"] for m in self.imessage_history]
         for message in unread_messages:
@@ -63,7 +63,18 @@ class Conversation:
             self.add_to_conversation_history(new_messages)
         return new_messages
 
+    def print_conversation(self):
+        history = self.imessage_history
+        if len(history) > self.max_length:
+            history = history[-self.max_length:]
+        for message in history:
+            if message["is_from_me"] == 0:
+                print(f"{self.person2['full_name']}: {message['content']}")
+            else:
+                print(f"You: {message['content']}")
+    
     def respond(self):
+        # self.print_conversation()
         response, self.llm_history = openai_utils.create_response(client, self.llm_history, tools=self.tools)
         self.trim_conversation()
 
@@ -71,5 +82,7 @@ class Conversation:
         send_permission = input(f"Send response? (y/n): ")
         if send_permission == "y":
             imessages.send_message(response.output_text, sender_id=self.person2_id)
+        elif send_permission != "n":
+            imessages.send_message(send_permission, sender_id=self.person2_id)
         
         return response
