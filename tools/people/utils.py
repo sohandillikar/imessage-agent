@@ -2,6 +2,8 @@ import os
 import sys
 import json
 from rapidfuzz import process
+from emoji import replace_emoji
+import apple_db.contacts as contacts
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 import openai_utils
@@ -13,7 +15,7 @@ def get_people() -> list[dict]:
 def update_people(people: list[dict]) -> None:
     with open(f"knowledge_base/people.json", "w") as f:
         json.dump(people, f, indent=4)
-    openai_utils.update_knowledge_base(data_file_paths=["knowledge_base/people.json"])
+    # openai_utils.update_knowledge_base(data_file_paths=["knowledge_base/people.json"])
 
 def create_new_person(
     full_name: str,
@@ -45,6 +47,13 @@ def create_new_person(
     })
     update_people(people)
     return people[-1]
+
+def create_new_person_from_contact(contact: contacts.Contact) -> dict:
+    firstname = contact["firstname"] if contact["firstname"] else ""
+    lastname = contact["lastname"] if contact["lastname"] else ""
+    full_name = replace_emoji(f"{firstname.title()} {lastname.title()}").strip()
+    phone = "+" + contact["phone"]
+    return create_new_person(full_name=full_name, phone=phone, email=contact["email"])
 
 def get_user() -> dict | None:
     people = get_people()

@@ -4,8 +4,11 @@ import subprocess
 from datetime import date
 from dotenv import load_dotenv
 from dataclasses import dataclass
+import apple_db.contacts as contacts
 import apple_db.utils as apple_db_utils
 import tools.people.utils as people_utils
+
+from pprint import pprint
 
 load_dotenv()
 
@@ -64,12 +67,17 @@ def get_messages(get_sender_info: bool = False, options: str = "") -> list[Messa
         del messages[i]["text"]
         del messages[i]["attributedBody"]
         if get_sender_info:
-            if messages[i]["is_from_me"] == 1:
+            if message["is_from_me"] == 1:
                 user = people_utils.get_user()
                 messages[i]["sender_info"] = user
                 messages[i]["sender_id"] = user["phone"]
             else:
-                messages[i]["sender_info"] = people_utils.get_person_by_sender_id(messages[i]["sender_id"])
+                sender = people_utils.get_person_by_sender_id(message["sender_id"])
+                if sender is None:
+                    contacts_list = contacts.filter_contacts(phone=message["sender_id"], email=message["sender_id"])
+                    if len(contacts_list) > 0:
+                        sender = people_utils.create_new_person_from_contact(contacts_list[0])
+                messages[i]["sender_info"] = sender
     cursor.close()
     conn.close()
     return messages
@@ -78,7 +86,7 @@ def get_unread_messages(get_sender_info: bool = False, options: str = "") -> lis
     if options:
         options = f"AND {options}"
     apple_reference_date = date(2001, 1, 1)
-    today = date.today()
+    today = date(2025, 9, 28) # date.today()
     diff_seconds = (today - apple_reference_date).total_seconds()
     diff_nanoseconds = int(diff_seconds * 1_000_000_000)
     options = f"m.date > {diff_nanoseconds} {options} AND m.is_read=0 and m.is_from_me=0"
