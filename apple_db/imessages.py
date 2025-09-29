@@ -1,9 +1,9 @@
 import os
-import json
 import sqlite3
+from datetime import date
 from dotenv import load_dotenv
 from dataclasses import dataclass
-import apple_db.utils as utils
+import utils as apple_db_utils
 
 load_dotenv()
 
@@ -22,42 +22,19 @@ class Message:
 
 def decode_attributed_body(body: bytes) -> str:
     content = body.decode("utf-8", errors="ignore")
-
     start_str = "NSString"
     start = content.find(start_str) + len(start_str)
     end = content.find("\x02iI")
     decoded_body = content[start:end]
-
     start_2 = decoded_body.find("+") + 1
     decoded_body = decoded_body[start_2:][1:].strip()
-
     return decoded_body
 
-def get_contacts(options: str = '') -> list[dict]:
-    if options:
-        options = f"WHERE {options}"
-    
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    
-    query = f"SELECT * FROM handle {options}"
-    cursor.execute(query)
-    
-    contacts = cursor.fetchall()
-    contacts = utils.sql_output_to_json(contacts, cursor.description)
-
-    cursor.close()
-    conn.close()
-
-    return contacts
-
-def get_messages(options: str = '') -> list[Message]:
+def get_messages(options: str = "") -> list[Message]:
     if options:
         options = f"AND {options}"
-    
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    
     query = f"""
     SELECT
         datetime(m.date/1000000000 + strftime('%s', '2001-01-01'), 'unixepoch', 'localtime') as dt,
@@ -74,125 +51,41 @@ def get_messages(options: str = '') -> list[Message]:
     LEFT JOIN chat c ON m.cache_roomnames = c.chat_identifier
     WHERE (m.text IS NOT NULL OR m.attributedBody IS NOT NULL) {options}
     """
-    
     cursor.execute(query)
     messages = cursor.fetchall()
-    messages = utils.sql_output_to_json(messages, cursor.description)
-
+    messages = apple_db_utils.sql_output_to_json(messages, cursor.description)
     for i, message in enumerate(messages):
-        if message['text'] and message['text'].strip():
-            messages[i]['content'] = message['text']
+        if message["text"] and message["text"].strip():
+            messages[i]["content"] = message["text"]
         else:
-            messages[i]['content'] = decode_attributed_body(message['attributedBody'])
-        
-        del messages[i]['text']
-        del messages[i]['attributedBody']
-
+            messages[i]["content"] = decode_attributed_body(message["attributedBody"])
+        del messages[i]["text"]
+        del messages[i]["attributedBody"]
     cursor.close()
     conn.close()
-
     return messages
 
-def get_chat_participants(chat_id: str):
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
+def get_unread_messages(options: str = "") -> list[Message]:
+    if options:
+        options = f"AND {options}"
+    apple_reference_date = date(2001, 1, 1)
+    today = date.today()
+    diff_seconds = (today - apple_reference_date).total_seconds()
+    diff_nanoseconds = int(diff_seconds * 1_000_000_000)
+    options = f"m.date > {diff_nanoseconds} {options} AND m.is_read=0 and m.is_from_me=0"
+    return get_messages(options)
 
-    query = f"""
-    SELECT
-        c.chat_identifier as chat_id,
-        h.id as sender_id
-    FROM chat c
-    JOIN chat_handle_join chj ON chj.chat_id = c.ROWID
-    JOIN handle h ON h.ROWID = chj.handle_id
-    WHERE c.chat_identifier = '{chat_id}'
-    """
-
-    cursor.execute(query)
-    participants = cursor.fetchall()
-    participants = utils.sql_output_to_json(participants, cursor.description)
-
-    cursor.close()
-    conn.close()
-
-    return participants
-
-def get_conversation_history(message: Message, clean: bool = False, bad_messages_file: str = 'bad_messages.json') -> tuple[list[Message], list[str]]:
-    if os.path.exists(bad_messages_file):
-        with open(bad_messages_file, 'r') as f:
-                bad_messages = json.load(f)
-    else:
-        bad_messages = {}
-    
+def get_conversation_history(message: Message) -> tuple[list[Message], list[str]]:
     conversation_history = []
-    ignore_guids = []
     current_message = message
-    
     while True:
         options_query = f"m.guid = '{current_message['reply_to_guid']}'"
         earlier_message = get_messages(options=options_query)
         if len(earlier_message) > 0:
             earlier_message = earlier_message[0]
-            if clean and earlier_message['guid'] in bad_messages:
-                earlier_message['content'] = bad_messages[earlier_message['guid']]['rephrased']
-                if len(earlier_message['content']) > 0:
-                    conversation_history.insert(0, earlier_message)
-                else:
-                    ignore_guids.append(earlier_message['guid'])
-            else:
-                conversation_history.insert(0, earlier_message)
+            conversation_history.insert(0, earlier_message)
             current_message = earlier_message
         else:
             break
-    
-    if clean and message['guid'] in bad_messages:
-        message['content'] = bad_messages[message['guid']]['rephrased']
-        if len(message['content']) > 0:
-            conversation_history.append(message)
-        else:
-            ignore_guids.append(message['guid'])
-    else:
-        conversation_history.append(message)
-    
-    return conversation_history, ignore_guids
-
-def get_conversations(messages: list[Message], unique: bool = True, clean: bool = False, bad_messages_file: str = 'bad_messages.json') -> list[list[Message]]:
-    """
-    messages: list of messages from oldest to newest
-    """
-    convos = []
-    all_ignore_guids = []
-
-    def is_message_in_convos(message):
-        for convo in convos:
-            for convo_message in convo:
-                if message['guid'] == convo_message['guid']:
-                    return True
-        return False
-
-    for i in range(len(messages) - 1, -1, -1):
-        if not messages[i]['guid'] in all_ignore_guids and ((not unique) or (unique and not is_message_in_convos(messages[i]))):
-            convo, ignore_guids = get_conversation_history(messages[i], clean, bad_messages_file)
-            all_ignore_guids.extend(ignore_guids)
-            convos.append(convo)
-
-    return convos
-
-def prepare_convo_for_fine_tuning(convo: list[Message], system_prompt: str) -> dict:
-    while len(convo) > 0 and convo[0]["is_from_me"]:
-        del convo[0]
-    if not convo: return None
-
-    fine_tuning_data = [{"role": "system", "content": system_prompt}]
-
-    for message in convo:
-        role = "assistant" if message["is_from_me"] else "user"
-        fine_tuning_data.append({"role": role, "content": message["content"]})
-
-    return {"messages": fine_tuning_data}
-
-def prepare_convos_for_fine_tuning(convos: list[list[Message]], system_prompt: str, output_file: str, indent: int = None):
-    with open(output_file, 'w') as f:
-        for convo in convos:
-            fine_tuning_data = prepare_convo_for_fine_tuning(convo, system_prompt)
-            if not fine_tuning_data is None:
-                f.write(json.dumps(fine_tuning_data, indent=indent) + '\n')
+    conversation_history.append(message)
+    return conversation_history
