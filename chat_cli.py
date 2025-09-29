@@ -6,7 +6,7 @@ import tools.people.utils as people_utils
 client = setup(update_knowledge_base=False)
 
 sender_id = "+15107503277"
-person = people_utils.get_person_info_by_sender_id(sender_id)
+person = people_utils.get_person_by_sender_id(sender_id)
 first_name = person["full_name"].split(" ")[0]
 
 tools = get_all_tools(web_search=True, file_search=True)

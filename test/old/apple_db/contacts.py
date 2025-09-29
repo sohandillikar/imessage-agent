@@ -26,8 +26,10 @@ def normalize_phone(phone: str) -> str:
 def get_contacts(options: str = "") -> list[Contact]:
     if options:
         options = f"AND {options}"
+
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
+
     query = f"""
     SELECT DISTINCT
         r.Z_PK as id,
@@ -41,13 +43,17 @@ def get_contacts(options: str = "") -> list[Contact]:
     WHERE r.ZFIRSTNAME IS NOT NULL AND
         (p.ZFULLNUMBER IS NOT NULL OR e.ZADDRESS IS NOT NULL) {options}
     """
+
     cursor.execute(query)
     contacts = cursor.fetchall()
     contacts = utils.sql_output_to_json(contacts, cursor.description)
+
     for contact in contacts:
         contact['phone'] = normalize_phone(contact['phone'])
+
     cursor.close()
     conn.close()
+
     return contacts
 
 def filter_contacts(contacts: list[Contact] = None, firstname: str = None, lastname: str = None, \
@@ -56,8 +62,7 @@ def filter_contacts(contacts: list[Contact] = None, firstname: str = None, lastn
         contacts = get_contacts()
     if phone:
         phone = normalize_phone(phone)
-    if "@" not in email:
-        email = None
+    
     contacts = pd.DataFrame(contacts)
     filtered_contacts = contacts[
         (contacts["firstname"].str.contains(firstname, case=False, na=False) if firstname else True) &
@@ -65,6 +70,7 @@ def filter_contacts(contacts: list[Contact] = None, firstname: str = None, lastn
         (contacts["phone"].str.contains(phone, case=False, na=False) if phone else True) &
         (contacts["email"].str.contains(email, case=False, na=False) if email else True)
     ]
+
     if return_type == "json":
         return filtered_contacts.to_dict('records')
     return filtered_contacts
