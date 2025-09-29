@@ -55,6 +55,7 @@ def get_messages(get_sender_info: bool = False, options: str = "") -> list[Messa
     LEFT JOIN handle h ON m.handle_id = h.ROWID
     LEFT JOIN chat c ON m.cache_roomnames = c.chat_identifier
     WHERE (m.text IS NOT NULL OR m.attributedBody IS NOT NULL) {options}
+    ORDER BY m.date
     """
     cursor.execute(query)
     messages = cursor.fetchall()
@@ -82,17 +83,26 @@ def get_messages(get_sender_info: bool = False, options: str = "") -> list[Messa
     conn.close()
     return messages
 
-def get_unread_messages(get_sender_info: bool = False, options: str = "") -> list[Message]:
+def get_unread_messages(get_sender_info: bool = False, unique_senders_only: bool = False, options: str = "") -> list[Message]:
     if options:
         options = f"AND {options}"
     apple_reference_date = date(2001, 1, 1)
-    today = date(2025, 9, 28) # date.today()
+    today = date.today()
     diff_seconds = (today - apple_reference_date).total_seconds()
     diff_nanoseconds = int(diff_seconds * 1_000_000_000)
     options = f"m.date > {diff_nanoseconds} {options} AND m.is_read=0 and m.is_from_me=0"
-    return get_messages(get_sender_info=get_sender_info, options=options)
+    messages = get_messages(get_sender_info=get_sender_info, options=options)
+    if unique_senders_only:
+        sender_ids = []
+        unique_messages = []
+        for i in range(len(messages) - 1, -1, -1):
+            if messages[i]["sender_id"] not in sender_ids:
+                unique_messages.insert(0, messages[i])
+                sender_ids.append(messages[i]["sender_id"])
+        messages = unique_messages
+    return messages
 
-def get_conversation_history(message: Message, get_sender_info: bool = False) -> tuple[list[Message], list[str]]:
+def get_conversation_history(message: Message, get_sender_info: bool = False, max_length: int = None) -> tuple[list[Message], list[str]]:
     conversation_history = []
     current_message = message
     while True:
@@ -101,6 +111,8 @@ def get_conversation_history(message: Message, get_sender_info: bool = False) ->
         if len(earlier_message) > 0:
             earlier_message = earlier_message[0]
             conversation_history.insert(0, earlier_message)
+            if max_length and len(conversation_history) >= max_length - 1:
+                break
             current_message = earlier_message
         else:
             break

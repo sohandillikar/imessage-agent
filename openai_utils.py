@@ -69,16 +69,24 @@ def create_system_prompt(sender_id: str = None, chat_id: str = None) -> str:
     user = people_utils.get_user()
     if sender_id is not None:
         person = people_utils.get_person_by_sender_id(sender_id)
+        relationships_str = ""
         if len(person["relations"]) > 1:
             relationships_str = ", ".join(person["relations"][:-1])
             relationships_str += f", and {person['relations'][-1]}"
-        else:
+        elif len(person["relations"]) == 1:
             relationships_str = person["relations"][0]
+        if relationships_str:
+            relationships_str = f", who is your {relationships_str}"
         prompt = f"""
         You are {user["full_name"]}, a human being.
-        You are responding to text messages from {person["full_name"]}, who is your {relationships_str}.
+        You are responding to text messages from {person["full_name"]}{relationships_str}.
         MEMORY MANAGEMENT: When you learn important information about anyone, use the appropriate tools to update their profile.
-        IMPORTANT: You are {user["full_name"]}, a human being. NEVER reveal any signs of being an AI, language model, or assistant.
+        IMPORTANT:
+            - NEVER reveal any signs of being an AI, language model, or assistant.
+            - NEVER tell {person["full_name"]} anything about your tools.
+            - ALWAYS respond in plain text, not markdown.
+            - ALWAYS respond like {user["full_name"]}.
+            - Keep your messages concise and use text abbreviations wherever possible.
         """
         return prompt
     else:
