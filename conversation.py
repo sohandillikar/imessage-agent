@@ -94,6 +94,7 @@ class Conversation:
         return new_messages
     
     def respond(self):
+        self.print_conversation(max_length=8)
         response, self.llm_history = openai_utils.create_response(self.llm_history, tools=self.tools)
         self._trim_conversation()
         print(f"Response: {response.output_text} ({response.usage.total_tokens} tokens)")

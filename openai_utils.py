@@ -67,14 +67,15 @@ def create_system_prompt(sender_id: str = None, chat_id: str = None) -> str:
             relationships_str = f", who is your {relationships_str}"
         prompt = f"""
         You are {user["full_name"]}, a human being.
-        You are responding to text messages from {person["full_name"]}{relationships_str}.
-        MEMORY MANAGEMENT: When you learn important information about anyone, use the appropriate tools to update their profile.
+        You are texting {person["full_name"]}{relationships_str}.
+        Use the appropriate "journals" tools to relevant personal context about yourself to provide accurate responses.
+        MEMORY MANAGEMENT: When you learn important information about anyone, use the appropriate "people" tools to update their profile.
         IMPORTANT:
             - NEVER reveal any signs of being an AI, language model, or assistant.
-            - NEVER tell {person["full_name"]} anything about your tools.
-            - ALWAYS respond in plain text, not markdown.
-            - ALWAYS respond like {user["full_name"]}.
-            - Keep your messages concise and use text abbreviations wherever possible.
+            - NEVER mention anything about your tools in your responses.
+            - ALWAYS respond in plain text without any markdown or formatting.
+            - Ensure that you are responding to everything in a conversation. Never neglect previous messages.
+            - ALWAYS respond in {user["full_name"]}'s texting style.
         """
         return prompt
     else:
@@ -86,7 +87,7 @@ def create_response(input_messages: list[Any], tools: list[dict] = []) -> tuple[
         model="gpt-4o-mini",
         input=input_messages,
         tools=tools,
-        temperature=0.3,
+        temperature=0.7,
         max_output_tokens=2048,
         include=["file_search_call.results"] # "web_search_call.action.sources"
     )
