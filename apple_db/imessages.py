@@ -8,8 +8,6 @@ import apple_db.contacts as contacts
 import apple_db.utils as apple_db_utils
 import tools.people.utils as people_utils
 
-from pprint import pprint
-
 load_dotenv()
 
 DB_PATH = os.getenv("IMESSAGES_DB_PATH")
@@ -50,10 +48,15 @@ def get_messages(get_sender_info: bool = False, options: str = "") -> list[Messa
         h.id as sender_id,
         c.chat_identifier as chat_id,
         c.display_name as chat_name,
-        m.is_from_me
+        m.is_from_me,
+        a.filename,
+        a.mime_type,
+        a.is_sticker
     FROM message m
     LEFT JOIN handle h ON m.handle_id = h.ROWID
     LEFT JOIN chat c ON m.cache_roomnames = c.chat_identifier
+    LEFT JOIN message_attachment_join maj ON m.ROWID = maj.message_id
+    LEFT JOIN attachment a ON maj.attachment_id = a.ROWID
     WHERE (m.text IS NOT NULL OR m.attributedBody IS NOT NULL) {options}
     ORDER BY m.date
     """
