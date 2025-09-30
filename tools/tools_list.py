@@ -1,7 +1,10 @@
 import os
+import sys
 import ast
 import glob
-from openai_utils import get_knowledge_base
+
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+import openai_utils
 
 def python_to_json_type(python_type: str) -> str:
     if python_type == "str":
@@ -87,11 +90,12 @@ def get_all_tools(web_search: bool = False, file_search: bool = False) -> list[d
         })
 
     if file_search:
-        knowledge_base = get_knowledge_base()
+        people_vector_store = openai_utils.get_vector_store("people")
+        journals_vector_store = openai_utils.get_vector_store("journals")
         tools.append({
             "type": "file_search",
-            "vector_store_ids": [knowledge_base.id],
+            "vector_store_ids": [people_vector_store.id, journals_vector_store.id],
         })
-        print(f"Using knowledge_base (ID: {knowledge_base.id}) for file search\n")
+        print(f"Using people (ID: {people_vector_store.id}) and journals (ID: {journals_vector_store.id}) for file search\n")
 
     return tools

@@ -1,6 +1,9 @@
 __pycache__/
 .env
 
+# Test files
+test/
+
 # Fine tuning
 fine_tuning/
 

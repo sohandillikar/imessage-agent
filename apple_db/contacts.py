@@ -56,7 +56,8 @@ def filter_contacts(contacts: list[Contact] = None, firstname: str = None, lastn
         contacts = get_contacts()
     if phone:
         phone = normalize_phone(phone)
-    if "@" not in email:
+        phone = phone[1:] if len(phone) > 10 else phone
+    if email and "@" not in email:
         email = None
     contacts = pd.DataFrame(contacts)
     filtered_contacts = contacts[

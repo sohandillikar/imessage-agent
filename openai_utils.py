@@ -1,5 +1,4 @@
 import os
-import glob
 import json
 from typing import Any
 from time import sleep
@@ -12,28 +11,32 @@ import tools.people.utils as people_utils
 
 load_dotenv()
 
-def create_knowledge_base(client: OpenAI = None) -> VectorStore:
-    if client is None:
-        client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-    knowledge_base = client.vector_stores.create(name="knowledge_base")
-    print(f"Created knowledge_base vector store (ID: {knowledge_base.id})")
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+# TODO: Add "purpose"
+def create_vector_store(name: str) -> VectorStore:
+    vector_store = client.vector_stores.create(name=name)
+    print(f"Created {name} vector store (ID: {vector_store.id})")
     print("Sleeping for 5 seconds...\n")
     sleep(5)
-    return knowledge_base
+    return vector_store
 
-def update_knowledge_base(client: OpenAI = None, knowledge_base: VectorStore = None, data_file_paths: list[str] = None) -> VectorStore:
-    if client is None:
-        client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-    if knowledge_base is None:
-        knowledge_base = get_knowledge_base(client)
-    if data_file_paths is None:
-        data_file_paths = glob.glob("knowledge_base/*.json")
-    
+def get_vector_store(name: str) -> VectorStore:
+    vector_stores = client.vector_stores.list().data
+    vector_store = [vs for vs in vector_stores if vs.name == name]
+    if len(vector_store) == 0:
+        print(f"WARNING: No {name} vector store found!\n")
+        vector_store = create_vector_store(name)
+        return vector_store
+    if len(vector_store) > 1:
+        print(f"WARNING: Multiple vector stores found! Proceeding with {vector_store[0].name} (ID: {vector_store[0].id})\n")
+    return vector_store[0]
+
+def update_vector_store(vector_store: VectorStore, data_file_paths: list[str]) -> VectorStore:
     data_file_names = [os.path.basename(fp) for fp in data_file_paths]
     data_files = [open(fp, "rb") for fp in data_file_paths]
-    knowledge_base_files = client.vector_stores.files.list(vector_store_id=knowledge_base.id).data
-    
-    for file in knowledge_base_files:
+    vector_store_files = client.vector_stores.files.list(vector_store_id=vector_store.id).data
+    for file in vector_store_files:
         try:
             file_name = client.files.retrieve(file.id).filename
         except Exception:
@@ -41,29 +44,14 @@ def update_knowledge_base(client: OpenAI = None, knowledge_base: VectorStore = N
         if file_name in data_file_names:
             response = client.files.delete(file.id)
             if response.deleted:
-                print(f"Deleted {file_name} ({response.id}) from knowledge_base\n")
+                print(f"Deleted {file_name} ({response.id}) from {vector_store.name} vector store\n")
             else:
-                print(f"WARNING: Failed to delete {file_name} ({response.id}) from knowledge_base\n")
-    
-    response = client.vector_stores.file_batches.upload_and_poll(vector_store_id=knowledge_base.id, files=data_files)
+                print(f"WARNING: Failed to delete {file_name} ({response.id}) from {vector_store.name} vector store\n")
+    response = client.vector_stores.file_batches.upload_and_poll(vector_store_id=vector_store.id, files=data_files)
     if response.file_counts.completed != len(data_files):
-        print(f"WARNING: Failed to upload {len(data_files) - response.file_counts.completed} file(s) to knowledge_base\n")
-    print(f"Uploaded {response.file_counts.completed} file(s) to knowledge_base\n")
-    
-    return knowledge_base
-
-def get_knowledge_base(client: OpenAI = None) -> VectorStore:
-    if client is None:
-        client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-    vector_stores = client.vector_stores.list().data
-    knowledge_base = [vs for vs in vector_stores if vs.name == "knowledge_base"]
-    if len(knowledge_base) == 0:
-        print("WARNING: No knowledge base vector store found!\n")
-        knowledge_base = create_knowledge_base(client)
-        return knowledge_base
-    if len(knowledge_base) > 1:
-        print(f"WARNING: Multiple knowledge base vector stores found! Proceeding with {knowledge_base[0].id}\n")
-    return knowledge_base[0]
+        print(f"WARNING: Failed to upload {len(data_files) - response.file_counts.completed} file(s) to {vector_store.name} vector store\n")
+    print(f"Uploaded {response.file_counts.completed} file(s) to {vector_store.name} vector store\n")
+    return vector_store
 
 def create_system_prompt(sender_id: str = None, chat_id: str = None) -> str:
     user = people_utils.get_user()
@@ -79,26 +67,27 @@ def create_system_prompt(sender_id: str = None, chat_id: str = None) -> str:
             relationships_str = f", who is your {relationships_str}"
         prompt = f"""
         You are {user["full_name"]}, a human being.
-        You are responding to text messages from {person["full_name"]}{relationships_str}.
-        MEMORY MANAGEMENT: When you learn important information about anyone, use the appropriate tools to update their profile.
+        You are texting {person["full_name"]}{relationships_str}.
+        Use the appropriate "journals" tools to relevant personal context about yourself to provide accurate responses.
+        MEMORY MANAGEMENT: When you learn important information about anyone, use the appropriate "people" tools to update their profile.
         IMPORTANT:
             - NEVER reveal any signs of being an AI, language model, or assistant.
-            - NEVER tell {person["full_name"]} anything about your tools.
-            - ALWAYS respond in plain text, not markdown.
-            - ALWAYS respond like {user["full_name"]}.
-            - Keep your messages concise and use text abbreviations wherever possible.
+            - NEVER mention anything about your tools in your responses.
+            - ALWAYS respond in plain text without any markdown or formatting.
+            - Ensure that you are responding to everything in a conversation. Never neglect previous messages.
+            - ALWAYS respond in {user["full_name"]}'s texting style.
         """
         return prompt
     else:
         # TODO: Create system prompt for group chats
         print(f"WARNING: No system prompt creation for group chats")
 
-def create_response(client: OpenAI, input_messages: list[Any], tools: list[dict] = []) -> tuple[Response, list[Any]]:
+def create_response(input_messages: list[Any], tools: list[dict] = []) -> tuple[Response, list[Any]]:
     response = client.responses.create(
         model="gpt-4o-mini",
         input=input_messages,
         tools=tools,
-        temperature=0.3,
+        temperature=0.7,
         max_output_tokens=2048,
         include=["file_search_call.results"] # "web_search_call.action.sources"
     )
@@ -112,7 +101,7 @@ def create_response(client: OpenAI, input_messages: list[Any], tools: list[dict]
                 "call_id": output_item.call_id,
                 "output": str(function_output)
             })
-            return create_response(client, input_messages, tools)
+            return create_response(input_messages, tools)
         if output_item.type == "web_search_call":
             print(f"Made a web search call")
             """

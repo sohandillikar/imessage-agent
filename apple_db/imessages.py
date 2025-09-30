@@ -8,8 +8,6 @@ import apple_db.contacts as contacts
 import apple_db.utils as apple_db_utils
 import tools.people.utils as people_utils
 
-from pprint import pprint
-
 load_dotenv()
 
 DB_PATH = os.getenv("IMESSAGES_DB_PATH")
@@ -50,10 +48,15 @@ def get_messages(get_sender_info: bool = False, options: str = "") -> list[Messa
         h.id as sender_id,
         c.chat_identifier as chat_id,
         c.display_name as chat_name,
-        m.is_from_me
+        m.is_from_me,
+        a.filename,
+        a.mime_type,
+        a.is_sticker
     FROM message m
     LEFT JOIN handle h ON m.handle_id = h.ROWID
     LEFT JOIN chat c ON m.cache_roomnames = c.chat_identifier
+    LEFT JOIN message_attachment_join maj ON m.ROWID = maj.message_id
+    LEFT JOIN attachment a ON maj.attachment_id = a.ROWID
     WHERE (m.text IS NOT NULL OR m.attributedBody IS NOT NULL) {options}
     ORDER BY m.date
     """
@@ -77,13 +80,13 @@ def get_messages(get_sender_info: bool = False, options: str = "") -> list[Messa
                 if sender is None:
                     contacts_list = contacts.filter_contacts(phone=message["sender_id"], email=message["sender_id"])
                     if len(contacts_list) > 0:
-                        sender = people_utils.create_new_person_from_contact(contacts_list[0])
+                        sender = people_utils.create_new_person_from_contact(contacts_list[0], sender_id=message["sender_id"])
                 messages[i]["sender_info"] = sender
     cursor.close()
     conn.close()
     return messages
 
-def get_unread_messages(get_sender_info: bool = False, unique_senders_only: bool = False, options: str = "") -> list[Message]:
+def get_unread_messages(get_sender_info: bool = False, unique_senders_only: bool = False, group_chats: bool = False, options: str = "") -> list[Message]:
     if options:
         options = f"AND {options}"
     apple_reference_date = date(2001, 1, 1)
@@ -91,6 +94,8 @@ def get_unread_messages(get_sender_info: bool = False, unique_senders_only: bool
     diff_seconds = (today - apple_reference_date).total_seconds()
     diff_nanoseconds = int(diff_seconds * 1_000_000_000)
     options = f"m.date > {diff_nanoseconds} {options} AND m.is_read=0 and m.is_from_me=0"
+    if not group_chats:
+        options += " AND c.chat_identifier is NULL"
     messages = get_messages(get_sender_info=get_sender_info, options=options)
     if unique_senders_only:
         sender_ids = []
