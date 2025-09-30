@@ -12,10 +12,12 @@ def get_people() -> list[dict]:
     with open(f"knowledge_base/people.json", "r") as f:
         return json.load(f)
 
-def update_people(people: list[dict]) -> None:
-    with open(f"knowledge_base/people.json", "w") as f:
-        json.dump(people, f, indent=4)
-    # openai_utils.update_knowledge_base(data_file_paths=["knowledge_base/people.json"])
+def update_people(people: list[dict] = None) -> None:
+    if people is not None:
+        with open(f"knowledge_base/people.json", "w") as f:
+            json.dump(people, f, indent=4)
+    vector_store = openai_utils.get_vector_store("people")
+    openai_utils.update_vector_store(vector_store, ["knowledge_base/people.json"])
 
 def create_new_person(
     full_name: str,

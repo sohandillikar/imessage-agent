@@ -1,10 +1,14 @@
 import os
+import sys
 import json
 import glob
 from dotenv import load_dotenv
 from datetime import datetime
 from emoji import replace_emoji
 import tools.people.utils as people_utils
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+import openai_utils
 
 load_dotenv()
 
@@ -15,7 +19,8 @@ def get_journals() -> list[dict]:
 def update_journals(journals: list[dict]) -> None:
     with open(f"knowledge_base/journals.json", "w") as f:
         json.dump(journals, f, indent=4)
-    # openai_utils.update_knowledge_base(data_file_paths=["knowledge_base/journals.json"])
+    vector_store = openai_utils.get_vector_store("journals")
+    openai_utils.update_vector_store(vector_store, ["knowledge_base/journals.json"])
 
 def parse_entry(entry_lines: list[str]) -> list[dict]:
     rosebud_username = os.getenv("ROSEBUD_USERNAME")

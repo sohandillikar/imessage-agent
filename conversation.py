@@ -1,11 +1,8 @@
 import os
 import openai_utils
-from setup import setup
 from base64 import b64encode
 import apple_db.imessages as imessages
 import tools.people.utils as people_utils
-
-client = setup(update_knowledge_base=False)
 
 class Conversation:
     def __init__(self, message: imessages.Message, max_length: int = 20, tools: list[dict] = []):
@@ -97,7 +94,7 @@ class Conversation:
         return new_messages
     
     def respond(self):
-        response, self.llm_history = openai_utils.create_response(client, self.llm_history, tools=self.tools)
+        response, self.llm_history = openai_utils.create_response(self.llm_history, tools=self.tools)
         self._trim_conversation()
         print(f"Response: {response.output_text} ({response.usage.total_tokens} tokens)")
         send_permission = input(f"Send response? (y/n): ")

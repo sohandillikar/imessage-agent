@@ -3,7 +3,7 @@ from setup import setup
 from tools.tools_list import get_all_tools
 import tools.people.utils as people_utils
 
-client = setup(update_knowledge_base=False)
+setup(update_vector_stores=False)
 
 sender_id = "+15107503277"
 person = people_utils.get_person_by_sender_id(sender_id)
@@ -18,7 +18,7 @@ print(f"System prompt: {system_prompt}")
 while True:
     user_input = input(f"{first_name}: ")
     messages.append({"role": "user", "content": [{"type": "input_text", "text": f"{first_name}: {user_input}"}]})
-    response, messages = openai_utils.create_response(client, messages, tools=tools)
+    response, messages = openai_utils.create_response(messages, tools=tools)
     if len(messages) > 20:
         messages = messages[-20:]
         print("Messages trimmed to last 20")
