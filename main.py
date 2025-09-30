@@ -7,16 +7,18 @@ import apple_db.imessages as imessages
 setup(update_vector_stores=False)
 
 def loop():
-    unread_messages = imessages.get_unread_messages(get_sender_info=True, group_chats=False, unique_senders_only=True)
-    tools = get_all_tools(web_search=True, file_search=True)
     conversations = {}
-
-    for message in unread_messages:
-        conversations[message["sender_id"]] = Conversation(message, max_length=20, tools=tools)
-        conversations[message["sender_id"]].respond()
+    tools = get_all_tools(web_search=True, file_search=True)
 
     while True:
         print("Checking for new messages...")
+        unread_messages = imessages.get_unread_messages(get_sender_info=True, group_chats=False, unique_senders_only=True)
+        for message in unread_messages:
+            sender_id = message["sender_id"]
+            if sender_id not in conversations:
+                conversations[sender_id] = Conversation(message, max_length=20, tools=tools)
+                conversations[sender_id].respond()
+            
         for conversation in conversations.values():
             new_messages = conversation.check_for_new_messages()
             if new_messages:

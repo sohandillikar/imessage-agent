@@ -1,5 +1,6 @@
 from datetime import datetime
 import tools.people.tools as people_tools
+import tools.journals.tools as journals_tools
 import tools.location.tools as location_tools
 
 # https://platform.openai.com/docs/guides/function-calling
@@ -43,6 +44,8 @@ def call_function(name: str, args: dict):
             return get_current_time(**args)
     if module == "people":
         return people_tools.call_function(func, args)
+    if module == "journals":
+        return journals_tools.call_function(func, args)
     if module == "location":
         return location_tools.call_function(func, args)
     raise ValueError(f"Function '{module}.{func}' not found")

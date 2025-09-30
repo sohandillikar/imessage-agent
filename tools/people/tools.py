@@ -8,7 +8,7 @@ def add_liking_to_person(person_name: str, liking: str) -> str:
     Do NOT use this for temporary experiences, situations, or activities they're currently engaged in.
     Args:
         person_name: The name of the person
-        liking: A very specific liking to add. Do NOT use this function for generic likes.
+        liking: A very specific liking to add. Do NOT use this function for generic likes
     Returns:
         str: Status of the update operation (e.g. "success", "error")
     """
@@ -36,7 +36,7 @@ def add_disliking_to_person(person_name: str, disliking: str) -> str:
     Do NOT use this for temporary problems, inconveniences, or frustrations they're currently experiencing.
     Args:
         person_name: The name of the person
-        disliking: A very specific disliking to add. Do NOT use this function for generic dislikes.
+        disliking: A very specific disliking to add. Do NOT use this function for generic dislikes
     Returns:
         str: Status of the update operation (e.g. "success", "error")
     """
@@ -64,7 +64,7 @@ def add_fact_to_person(person_name: str, fact: str) -> str:
     Do NOT use this to capture likes or dislikes. Use the add_liking_to_person or add_disliking_to_person functions instead, if appropriate.
     Args:
         person_name: The name of the person
-        fact: A very specific fact to add. Do NOT use this function for generic facts.
+        fact: A very specific fact to add. Do NOT use this function for generic facts
     Returns:
         str: Status of the update operation (e.g. "success", "error")
     """
