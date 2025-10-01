@@ -10,7 +10,10 @@ from googleapiclient.errors import HttpError
 
 load_dotenv()
 
-tz = timezone(os.getenv("TIMEZONE"))
+tz_env_var = os.getenv("TIMEZONE")
+if not tz_env_var:
+    raise ValueError("TIMEZONE environment variable is not set")
+tz = timezone(tz_env_var)
 
 # If modifying these scopes, delete token.json.
 SCOPES = ["https://www.googleapis.com/auth/calendar"]
@@ -53,6 +56,19 @@ def create_calendar(name: str, description: str, time_zone: str = os.getenv("TIM
         "timeZone": time_zone
     }).execute()
     return new_calendar
+
+def create_event(calendar_id: str, title: str, start: str, end: str, description: str = None, location: str = None):
+    event = {
+        "summary": title,
+        "start": {"dateTime": start, "timeZone": tz_env_var},
+        "end": {"dateTime": end, "timeZone": tz_env_var}
+    }
+    if description:
+        event["description"] = description
+    if location:
+        event["location"] = location
+    event = service.events().insert(calendarId=calendar_id, body=event).execute()
+    return event
 
 def is_event_confirmed(event: dict):
     if "attendees" in event:
