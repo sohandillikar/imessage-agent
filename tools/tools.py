@@ -2,6 +2,7 @@ from datetime import datetime
 import tools.people.tools as people_tools
 import tools.journals.tools as journals_tools
 import tools.location.tools as location_tools
+import tools.gcal.tools as gcal_tools
 
 # https://platform.openai.com/docs/guides/function-calling
 # If your function has no return value (e.g. send_email),
@@ -37,4 +38,6 @@ def call_function(name: str, args: dict):
         return journals_tools.call_function(func, args)
     if module == "location":
         return location_tools.call_function(func, args)
+    if module == "gcal":
+        return gcal_tools.call_function(func, args)
     raise ValueError(f"Function '{module}.{func}' not found")

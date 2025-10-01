@@ -2,6 +2,7 @@ import os
 from dotenv import load_dotenv
 import tools.people.utils as people_utils
 import tools.journals.utils as journals_utils
+import tools.gcal.utils as gcal_utils
 
 load_dotenv()
 
@@ -17,6 +18,12 @@ def setup(update_vector_stores: bool = True) -> None:
     if update_vector_stores:
         people_utils.update_people()
         journals_utils.load_journals()
+
+    calendar = gcal_utils.get_calendar_by_name("iMessage Agent")
+    if calendar is None:
+        print("WARNING: No calendar found for iMessage Agent. Creating one...")
+        calendar = gcal_utils.create_calendar("iMessage Agent", "A calendar for events created by your iMessage Agent.")
+        print(f"Created calendar: {calendar['summary']}")
 
 if __name__ == "__main__":
     setup()
