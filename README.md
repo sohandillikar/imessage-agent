@@ -1,4 +1,4 @@
-# My coolest invention yet
+# iMessage Agent
 
 > _Currently work in progress... (but almost done!)_  
 > _I'll update this repo with docs and setup instructions soon._
