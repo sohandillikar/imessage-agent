@@ -5,6 +5,7 @@ token.json
 
 # Test files
 test/
+experiment.ipynb
 
 # Fine tuning
 fine_tuning/

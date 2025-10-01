@@ -39,6 +39,21 @@ def get_all_calendars():
     calendars = service.calendarList().list().execute()["items"]
     return calendars
 
+def get_calendar_by_name(name: str):
+    calendars = get_all_calendars()
+    for calendar in calendars:
+        if calendar["summary"] == name:
+            return calendar
+    return None
+
+def create_calendar(name: str, description: str, time_zone: str = os.getenv("TIMEZONE")):
+    new_calendar = service.calendars().insert(body={
+        "summary": name,
+        "description": description,
+        "timeZone": time_zone
+    }).execute()
+    return new_calendar
+
 def is_event_confirmed(event: dict):
     if "attendees" in event:
         self_status = [a["responseStatus"] for a in event["attendees"] if a.get("self", False)]
