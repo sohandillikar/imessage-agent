@@ -1,6 +1,7 @@
 # My coolest invention yet
 
-> _Currently work in progress... (but almost done!)_
+> _Currently work in progress... (but almost done!)_  
+> _I'll update this repo with docs and setup instructions soon._
 
 ## About
 
