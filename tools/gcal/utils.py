@@ -70,6 +70,21 @@ def create_event(calendar_id: str, title: str, start: str, end: str, description
     event = service.events().insert(calendarId=calendar_id, body=event).execute()
     return event
 
+def modify_event(calendar_id: str, event_id: str, title: str = None, description: str = None, start: str = None, end: str = None, location: str = None):
+    updates = {}
+    if title:
+        updates["summary"] = title
+    if description:
+        updates["description"] = description
+    if start:
+        updates["start"] = {"dateTime": start, "timeZone": tz_env_var}
+    if end:
+        updates["end"] = {"dateTime": end, "timeZone": tz_env_var}
+    if location:
+        updates["location"] = location
+    event = service.events().patch(calendarId=calendar_id, eventId=event_id, body=updates).execute()
+    return event
+
 def is_event_confirmed(event: dict):
     if "attendees" in event:
         self_status = [a["responseStatus"] for a in event["attendees"] if a.get("self", False)]
@@ -98,6 +113,7 @@ def get_events_from_calendars(calendars: list[dict], start: str, end: str, confi
 
 def extract_key_info_from_event(event: dict):
     return {
+        "id": event["id"],
         "title": event["summary"],
         "description": event.get("description", None),
         "location": event.get("location", None),

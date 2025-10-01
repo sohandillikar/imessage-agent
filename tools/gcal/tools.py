@@ -25,7 +25,9 @@ def get_schedule(date: str) -> list:
 def create_event(title: str, description: str, start: str, end: str, location: str = None) -> str:
     """
     Use this to add a new event to your calendar only after plans are confirmed in conversation.
-    IMPORTANT: Use tools-get_current_date_and_time to get a reference date and time.
+    IMPORTANT:
+        - Use tools-get_current_date_and_time to get a reference date and time.
+        - Use gcal-get_schedule to ensure that you are available at the time of the event and that a similar event is not already scheduled. If a similar event is already scheduled, use gcal-modify_event to modify the event.
     Args:
         title: The title of the event
         description: The description of the event
@@ -33,15 +35,40 @@ def create_event(title: str, description: str, start: str, end: str, location: s
         end: The end date and time of the event in YYYY-MM-DD HH:MM format
         location: The location of the event, if mentioned
     Returns:
-        str: Status of the update operation (e.g. "success", "error")
+        str: ID of the created event
     """
-    start_dt = datetime.strptime(start, "%Y-%m-%d %H:%M")
-    end_dt = datetime.strptime(end, "%Y-%m-%d %H:%M")
+    start_dt = datetime.strptime(start[:16], "%Y-%m-%d %H:%M")
+    end_dt = datetime.strptime(end[:16], "%Y-%m-%d %H:%M")
     event_start = gcal_utils.tz.localize(start_dt).isoformat()
     event_end =  gcal_utils.tz.localize(end_dt).isoformat()
     calendar = gcal_utils.get_calendar_by_name("iMessage Agent")
     event = gcal_utils.create_event(calendar["id"], title, event_start, event_end, description, location)
-    print(f"Created new calendar event: {event['summary']}")
+    return event["id"]
+
+def modify_event(event_id: str, title: str = None, description: str = None, start: str = None, end: str = None, location: str = None) -> str:
+    """
+    Use this to modify an existing event on your calendar.
+    IMPORTANT:
+        - Use tools-get_current_date_and_time to get a reference date and time.
+        - Use gcal-get_schedule to get the id of the event you want to modify.
+    Args:
+        event_id: The id from gcal-get_schedule of the event you want to modify
+        title: The title of the event
+        description: The description of the event
+        start: The start date and time of the event in YYYY-MM-DD HH:MM format
+        end: The end date and time of the event in YYYY-MM-DD HH:MM format
+        location: The location of the event
+    Returns:
+        str: Status of the update operation (e.g. "success", "error")
+    """
+    if start:
+        start_dt = datetime.strptime(start[:16], "%Y-%m-%d %H:%M")
+        start = gcal_utils.tz.localize(start_dt).isoformat()
+    if end:
+        end_dt = datetime.strptime(end[:16], "%Y-%m-%d %H:%M")
+        end = gcal_utils.tz.localize(end_dt).isoformat()
+    calendar = gcal_utils.get_calendar_by_name("iMessage Agent")
+    gcal_utils.modify_event(calendar["id"], event_id, title, description, start, end, location)
     return "success"
 
 def call_function(name: str, args: dict):
@@ -49,4 +76,6 @@ def call_function(name: str, args: dict):
         return get_schedule(**args)
     if name == "create_event":
         return create_event(**args)
+    if name == "modify_event":
+        return modify_event(**args)
     raise ValueError(f"Function 'gcal.{name}' not found")
