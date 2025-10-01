@@ -15,8 +15,6 @@ I'm building an AI to understand me, my life, and feelings so well, that it can 
 - **Google Calendar + Tasks** - For understanding my schedule/priorities
 - **24/7 location data** - Extra context for enhanced web search results
 
----
-
 ## Capabilities
 
 Beyond just impersonating me, this agent can:
