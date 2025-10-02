@@ -10,7 +10,10 @@ from googleapiclient.errors import HttpError
 
 load_dotenv()
 
-tz = timezone(os.getenv("TIMEZONE"))
+tz_env_var = os.getenv("TIMEZONE")
+if not tz_env_var:
+    raise ValueError("TIMEZONE environment variable is not set")
+tz = timezone(tz_env_var)
 
 # If modifying these scopes, delete token.json.
 SCOPES = ["https://www.googleapis.com/auth/calendar"]
@@ -54,6 +57,38 @@ def create_calendar(name: str, description: str, time_zone: str = os.getenv("TIM
     }).execute()
     return new_calendar
 
+def create_event(calendar_id: str, title: str, start: str, end: str, description: str = None, location: str = None):
+    event = {
+        "summary": title,
+        "start": {"dateTime": start, "timeZone": tz_env_var},
+        "end": {"dateTime": end, "timeZone": tz_env_var}
+    }
+    if description:
+        event["description"] = description
+    if location:
+        event["location"] = location
+    event = service.events().insert(calendarId=calendar_id, body=event).execute()
+    return event
+
+def modify_event(calendar_id: str, event_id: str, title: str = None, description: str = None, start: str = None, end: str = None, location: str = None):
+    updates = {}
+    if title:
+        updates["summary"] = title
+    if description:
+        updates["description"] = description
+    if start:
+        updates["start"] = {"dateTime": start, "timeZone": tz_env_var}
+    if end:
+        updates["end"] = {"dateTime": end, "timeZone": tz_env_var}
+    if location:
+        updates["location"] = location
+    event = service.events().patch(calendarId=calendar_id, eventId=event_id, body=updates).execute()
+    return event
+
+def delete_event(calendar_id: str, event_id: str):
+    service.events().delete(calendarId=calendar_id, eventId=event_id).execute()
+    return "success"
+
 def is_event_confirmed(event: dict):
     if "attendees" in event:
         self_status = [a["responseStatus"] for a in event["attendees"] if a.get("self", False)]
@@ -82,6 +117,7 @@ def get_events_from_calendars(calendars: list[dict], start: str, end: str, confi
 
 def extract_key_info_from_event(event: dict):
     return {
+        "id": event["id"],
         "title": event["summary"],
         "description": event.get("description", None),
         "location": event.get("location", None),

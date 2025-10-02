@@ -2,11 +2,11 @@ import tools.journals.utils as journals_utils
 
 def get_day_overview(date: str) -> dict:
     """
-    Get an overview of any day that includes your thoughts, feelings, plans, events, people you interacted with, and topics you discussed.
+    Get an overview of any day that includes your thoughts, feelings, plans, priorities, people you interacted with, and topics you discussed.
     Use this when someone asks about:
         - You, how you're doing, or your day
         - Your morning, afternoon, evening, or night
-        - Your plans/schedule for any day
+        - Your plans/priorities for any day
         - Your thoughts or feelings
     Use this instead of the file_search tool when a specific day is being discussed.
     IMPORTANT: Use tools-get_current_date_and_time to get a reference date.
