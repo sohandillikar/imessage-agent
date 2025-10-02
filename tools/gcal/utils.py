@@ -85,6 +85,10 @@ def modify_event(calendar_id: str, event_id: str, title: str = None, description
     event = service.events().patch(calendarId=calendar_id, eventId=event_id, body=updates).execute()
     return event
 
+def delete_event(calendar_id: str, event_id: str):
+    service.events().delete(calendarId=calendar_id, eventId=event_id).execute()
+    return "success"
+
 def is_event_confirmed(event: dict):
     if "attendees" in event:
         self_status = [a["responseStatus"] for a in event["attendees"] if a.get("self", False)]

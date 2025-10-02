@@ -15,11 +15,14 @@ messages = [{"role": "system", "content": [{"type": "input_text", "text": system
 
 print(f"System prompt: {system_prompt}")
 
-while True:
-    user_input = input(f"{first_name}: ")
-    messages.append({"role": "user", "content": [{"type": "input_text", "text": f"{first_name}: {user_input}"}]})
-    response, messages = openai_utils.create_response(messages, tools=tools)
-    if len(messages) > 20:
-        messages = messages[-20:]
-        print("Messages trimmed to last 20")
-    print(f"{response.output_text} ({response.usage.total_tokens} tokens)\n")
+try:
+    while True:
+        user_input = input(f"{first_name}: ")
+        messages.append({"role": "user", "content": [{"type": "input_text", "text": f"{first_name}: {user_input}"}]})
+        response, messages = openai_utils.create_response(messages, tools=tools)
+        if len(messages) > 20:
+            messages = messages[-20:]
+            print("Messages trimmed to last 20")
+        print(f"{response.output_text} ({response.usage.total_tokens} tokens)\n")
+except KeyboardInterrupt:
+    print(f"Exiting...")

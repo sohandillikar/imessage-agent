@@ -61,7 +61,7 @@ def add_fact_to_person(person_name: str, fact: str) -> str:
     """
     Add a fact to someone's profile when you learn about it in conversation.
     Use this ONLY when you learn a fact about someone's life that should be remembered for future conversations.
-    Do NOT use this to capture likes or dislikes. Use the add_liking_to_person or add_disliking_to_person functions instead, if appropriate.
+    Do NOT use this to capture likes or dislikes. Use the people-add_liking_to_person or people-add_disliking_to_person instead, if appropriate.
     Args:
         person_name: The name of the person
         fact: A very specific fact to add. Do NOT use this function for generic facts

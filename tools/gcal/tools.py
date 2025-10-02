@@ -24,7 +24,7 @@ def get_schedule(date: str) -> list:
 
 def create_event(title: str, description: str, start: str, end: str, location: str = None) -> str:
     """
-    Use this to add a new event to your calendar only after plans are confirmed in conversation.
+    Use this to schedule a plan, event, or activity that is being discussed in conversation.
     IMPORTANT:
         - Use tools-get_current_date_and_time to get a reference date and time.
         - Use gcal-get_schedule to ensure that you are available at the time of the event and that a similar event is not already scheduled. If a similar event is already scheduled, use gcal-modify_event to modify the event.
@@ -47,7 +47,7 @@ def create_event(title: str, description: str, start: str, end: str, location: s
 
 def modify_event(event_id: str, title: str = None, description: str = None, start: str = None, end: str = None, location: str = None) -> str:
     """
-    Use this to modify an existing event on your calendar.
+    Use this to modify a plan, event, or activity that is being discussed in conversation.
     IMPORTANT:
         - Use tools-get_current_date_and_time to get a reference date and time.
         - Use gcal-get_schedule to get the id of the event you want to modify.
@@ -71,6 +71,24 @@ def modify_event(event_id: str, title: str = None, description: str = None, star
     gcal_utils.modify_event(calendar["id"], event_id, title, description, start, end, location)
     return "success"
 
+def delete_event(event_id: str) -> str:
+    """
+    Use this to delete a plan, event, or activity that gets cancelled in conversation.
+    IMPORTANT:
+        - Use tools-get_current_date_and_time to get a reference date and time.
+        - Use gcal-get_schedule to get the id of the event you want to modify.
+    Args:
+        event_id: The id from gcal-get_schedule of the event you want to delete
+    Returns:
+        str: Status of the delete operation (e.g. "success", "error")
+    """
+    calendar = gcal_utils.get_calendar_by_name("iMessage Agent")
+    try:
+        gcal_utils.delete_event(calendar["id"], event_id)
+    except:
+        return "Error: This event is mandatory and cannot be deleted"
+    return "success"
+
 def call_function(name: str, args: dict):
     if name == "get_schedule":
         return get_schedule(**args)
@@ -78,4 +96,6 @@ def call_function(name: str, args: dict):
         return create_event(**args)
     if name == "modify_event":
         return modify_event(**args)
+    if name == "delete_event":
+        return delete_event(**args)
     raise ValueError(f"Function 'gcal.{name}' not found")
