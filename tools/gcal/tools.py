@@ -3,14 +3,14 @@ from datetime import datetime, time, timedelta
 
 def get_schedule(date: str) -> list:
     """
-    Get a list of events you have planned for any day.
-    Use this when someone asks about your day, plans, availability, or when trying to schedule events/activities.
+    Get a list of tasks and events you have planned for any day.
+    Use this when someone asks about your day, plans, availability, or when trying to schedule tasks, events, activities, or plans.
     Use this instead of the file_search tool when a specific day is being discussed.
     IMPORTANT: Use tools-get_current_date_and_time to get a reference date.
     Args:
-        date: The date to get a list of events for in YYYY-MM-DD format
+        date: The date to get a list of tasks and events for in YYYY-MM-DD format
     Returns:
-        list: A list of events you have planned
+        list: A list of tasks and events you have planned
     """
     date_obj = datetime.strptime(date, "%Y-%m-%d")
     start = gcal_utils.tz.localize(datetime.combine(date_obj, time.min))
@@ -24,7 +24,7 @@ def get_schedule(date: str) -> list:
 
 def create_event(title: str, description: str, start: str, end: str, location: str = None) -> str:
     """
-    Use this to schedule a plan, event, or activity that is being discussed in conversation.
+    Use this to schedule any task, plan, event, activity, or reminder that is being discussed in conversation.
     IMPORTANT:
         - Use tools-get_current_date_and_time to get a reference date and time.
         - Use gcal-get_schedule to ensure that you are available at the time of the event and that a similar event is not already scheduled. If a similar event is already scheduled, use gcal-modify_event to modify the event.
@@ -47,7 +47,7 @@ def create_event(title: str, description: str, start: str, end: str, location: s
 
 def modify_event(event_id: str, title: str = None, description: str = None, start: str = None, end: str = None, location: str = None) -> str:
     """
-    Use this to modify a plan, event, or activity that is being discussed in conversation.
+    Use this to modify any task, plan, event, activity, or reminder that is being discussed in conversation.
     IMPORTANT:
         - Use tools-get_current_date_and_time to get a reference date and time.
         - Use gcal-get_schedule to get the id of the event you want to modify.
@@ -68,15 +68,18 @@ def modify_event(event_id: str, title: str = None, description: str = None, star
         end_dt = datetime.strptime(end[:16], "%Y-%m-%d %H:%M")
         end = gcal_utils.tz.localize(end_dt).isoformat()
     calendar = gcal_utils.get_calendar_by_name("iMessage Agent")
-    gcal_utils.modify_event(calendar["id"], event_id, title, description, start, end, location)
+    try:
+        gcal_utils.modify_event(calendar["id"], event_id, title, description, start, end, location)
+    except:
+        return "Error: This event is mandatory and cannot be modified"
     return "success"
 
 def delete_event(event_id: str) -> str:
     """
-    Use this to delete a plan, event, or activity that gets cancelled in conversation.
+    Use this to delete any task, plan, event, activity, or reminder that gets cancelled in conversation.
     IMPORTANT:
         - Use tools-get_current_date_and_time to get a reference date and time.
-        - Use gcal-get_schedule to get the id of the event you want to modify.
+        - Use gcal-get_schedule to get the id of the event you want to delete.
     Args:
         event_id: The id from gcal-get_schedule of the event you want to delete
     Returns:
