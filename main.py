@@ -16,7 +16,7 @@ def loop():
         for message in unread_messages:
             sender_id = message["sender_id"]
             if sender_id not in conversations:
-                conversations[sender_id] = Conversation(message, max_length=20, tools=tools)
+                conversations[sender_id] = Conversation(message, max_context_length=20, tools=tools)
                 conversations[sender_id].respond()
             
         for conversation in conversations.values():

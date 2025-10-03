@@ -5,14 +5,14 @@ import apple_db.imessages as imessages
 import tools.people.utils as people_utils
 
 class Conversation:
-    def __init__(self, message: imessages.Message, max_length: int = 20, tools: list[dict] = []):
-        self.max_length = max_length
+    def __init__(self, message: imessages.Message, max_context_length: int = None, tools: list[dict] = []):
+        self.max_context_length = max_context_length
         self.tools = tools
         self.person1 = people_utils.get_user()
         self.person2 = message["sender_info"]
         self.person2_id = message["sender_id"]
         self.system_prompt = openai_utils.create_system_prompt(sender_id=message["sender_id"])
-        self.imessage_history = imessages.get_conversation_history(message, get_sender_info=True, max_length=max_length)
+        self.imessage_history = imessages.get_conversation_history(message, get_sender_info=True, max_length=max_context_length)
         self.llm_history = self._convert_imessage_convo_for_llm(self.imessage_history, include_system_prompt=True)
         print(f"System prompt: {self.system_prompt}")
 
@@ -71,16 +71,16 @@ class Conversation:
         return llm_convo
 
     def _trim_conversation(self):
-        if len(self.llm_history) > self.max_length:
-            self.llm_history = self.llm_history[-self.max_length:]
+        if self.max_context_length and len(self.llm_history) > self.max_context_length:
+            self.llm_history = self.llm_history[-self.max_context_length:]
             self.llm_history.insert(0, {"role": "system", "content": [{"type": "input_text", "text": self.system_prompt}]})
-            print(f"Conversation trimmed to {self.max_length} messages")
+            print(f"Conversation trimmed to {self.max_context_length} messages")
 
     def _add_to_conversation_history(self, new_imessages: list[imessages.Message]):
         self.imessage_history.extend(new_imessages)
         llm_messages = self._convert_imessage_convo_for_llm(new_imessages)
         self.llm_history.extend(llm_messages)
-        self._trim_conversation()
+        # self._trim_conversation() # TODO: Properly trim conversation history
 
     def check_for_new_messages(self):
         unread_messages = imessages.get_unread_messages(get_sender_info=True, group_chats=False, options=f"sender_id='{self.person2_id}'")
@@ -94,23 +94,19 @@ class Conversation:
         return new_messages
     
     def respond(self):
-        self.print_conversation(max_length=8)
+        self.print_conversation()
         response, self.llm_history = openai_utils.create_response(self.llm_history, tools=self.tools)
-        self._trim_conversation()
+        # self._trim_conversation() # TODO: Properly trim conversation history
         print(f"Response: {response.output_text} ({response.usage.total_tokens} tokens)")
         send_permission = input(f"Send response? (y/n): ")
         if send_permission == "y":
             imessages.send_message(response.output_text, sender_id=self.person2_id)
-        elif send_permission != "n":
-            imessages.send_message(send_permission, sender_id=self.person2_id)
         return response
 
-    def print_conversation(self, max_length: int = None):
-        if max_length is None:
-            max_length = self.max_length
+    def print_conversation(self, max_messages: int = 10):
         conversation = self.imessage_history
-        if len(conversation) > max_length:
-            conversation = conversation[-max_length:]
+        if len(conversation) > max_messages:
+            conversation = conversation[-max_messages:]
         for message in conversation:
             if message["is_from_me"] == 1:
                 print(f"{self.person1['full_name']}: {message['content']}")

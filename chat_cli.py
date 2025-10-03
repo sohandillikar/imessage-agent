@@ -5,24 +5,25 @@ import tools.people.utils as people_utils
 
 setup(update_vector_stores=False)
 
-sender_id = "+15107503277"
-person = people_utils.get_person_by_sender_id(sender_id)
-first_name = person["full_name"].split(" ")[0]
+def loop():
+    sender_id = "+15107503277"
+    person = people_utils.get_person_by_sender_id(sender_id)
+    first_name = person["full_name"].split(" ")[0]
 
-tools = get_all_tools(web_search=True, file_search=True)
-system_prompt = openai_utils.create_system_prompt(sender_id=sender_id)
-messages = [{"role": "system", "content": [{"type": "input_text", "text": system_prompt}]}]
+    tools = get_all_tools(web_search=True, file_search=True)
+    system_prompt = openai_utils.create_system_prompt(sender_id=sender_id)
+    messages = [{"role": "system", "content": [{"type": "input_text", "text": system_prompt}]}]
 
-print(f"System prompt: {system_prompt}")
+    print(f"System prompt: {system_prompt}")
 
-try:
     while True:
         user_input = input(f"{first_name}: ")
         messages.append({"role": "user", "content": [{"type": "input_text", "text": f"{first_name}: {user_input}"}]})
         response, messages = openai_utils.create_response(messages, tools=tools)
-        if len(messages) > 20:
-            messages = messages[-20:]
-            print("Messages trimmed to last 20")
         print(f"{response.output_text} ({response.usage.total_tokens} tokens)\n")
-except KeyboardInterrupt:
-    print(f"Exiting...")
+
+if __name__ == "__main__":
+    try:
+        loop()
+    except KeyboardInterrupt:
+        print(f"Shutting down...")
