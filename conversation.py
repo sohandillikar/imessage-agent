@@ -14,7 +14,6 @@ class Conversation:
         self.system_prompt = openai_utils.create_system_prompt(sender_id=message["sender_id"])
         self.imessage_history = imessages.get_conversation_history(message, get_sender_info=True, max_length=max_context_length)
         self.llm_history = self._convert_imessage_convo_for_llm(self.imessage_history, include_system_prompt=True)
-        print(f"System prompt: {self.system_prompt}")
 
     def _encode_file(self, file_path: str) -> str:
         file_path = os.path.expanduser(file_path)
@@ -104,6 +103,7 @@ class Conversation:
         return response
 
     def print_conversation(self, max_messages: int = 10):
+        print(f"System prompt: {self.system_prompt}")
         conversation = self.imessage_history
         if len(conversation) > max_messages:
             conversation = conversation[-max_messages:]

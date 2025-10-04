@@ -27,3 +27,4 @@ if __name__ == "__main__":
         loop()
     except KeyboardInterrupt:
         print(f"Shutting down...")
+        exit(0)
