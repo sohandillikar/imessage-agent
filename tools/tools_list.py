@@ -90,12 +90,14 @@ def get_all_tools(web_search: bool = False, file_search: bool = False) -> list[d
         })
 
     if file_search:
-        people_vector_store = openai_utils.get_vector_store("people")
-        journals_vector_store = openai_utils.get_vector_store("journals")
+        # people_vector_store = openai_utils.get_vector_store("people")
+        # journals_vector_store = openai_utils.get_vector_store("journals")
+        # messages_vector_store = openai_utils.get_vector_store("messages")
+        knowledge_base_vector_store = openai_utils.get_vector_store("knowledge_base")
         tools.append({
             "type": "file_search",
-            "vector_store_ids": [people_vector_store.id, journals_vector_store.id],
+            "vector_store_ids": [knowledge_base_vector_store.id],
         })
-        print(f"Using people (ID: {people_vector_store.id}) and journals (ID: {journals_vector_store.id}) for file search\n")
+        print(f"Using knowledge base (ID: {knowledge_base_vector_store.id}) for file search\n")
 
     return tools

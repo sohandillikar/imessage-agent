@@ -50,7 +50,7 @@ def update_vector_store(vector_store: VectorStore, data_file_paths: list[str]) -
     response = client.vector_stores.file_batches.upload_and_poll(vector_store_id=vector_store.id, files=data_files)
     if response.file_counts.completed != len(data_files):
         print(f"WARNING: Failed to upload {len(data_files) - response.file_counts.completed} file(s) to {vector_store.name} vector store\n")
-    print(f"Uploaded {response.file_counts.completed} file(s) to {vector_store.name} vector store\n")
+    print(f"Uploaded {data_file_names} to {vector_store.name} vector store\n")
     return vector_store
 
 def create_system_prompt(sender_id: str = None, chat_id: str = None) -> str:

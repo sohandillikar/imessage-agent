@@ -1,0 +1,6 @@
+{
+  "conversation_permissions": {
+    "+15107503277": { "read": true, "write": true },
+    "+19162609704": { "read": true, "write": true }
+  }
+}

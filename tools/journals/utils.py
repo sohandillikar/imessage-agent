@@ -19,7 +19,7 @@ def get_journals() -> list[dict]:
 def update_journals(journals: list[dict]) -> None:
     with open(f"knowledge_base/journals.json", "w") as f:
         json.dump(journals, f, indent=4)
-    vector_store = openai_utils.get_vector_store("journals")
+    vector_store = openai_utils.get_vector_store("knowledge_base")
     openai_utils.update_vector_store(vector_store, ["knowledge_base/journals.json"])
 
 def parse_entry(entry_lines: list[str]) -> list[dict]:

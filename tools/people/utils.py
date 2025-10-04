@@ -16,7 +16,7 @@ def update_people(people: list[dict] = None) -> None:
     if people is not None:
         with open(f"knowledge_base/people.json", "w") as f:
             json.dump(people, f, indent=4)
-    vector_store = openai_utils.get_vector_store("people")
+    vector_store = openai_utils.get_vector_store("knowledge_base")
     openai_utils.update_vector_store(vector_store, ["knowledge_base/people.json"])
 
 def create_new_person(
