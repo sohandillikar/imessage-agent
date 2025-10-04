@@ -76,12 +76,7 @@ def get_messages(get_sender_info: bool = False, options: str = "") -> list[Messa
                 messages[i]["sender_info"] = user
                 messages[i]["sender_id"] = user["phone"]
             else:
-                sender = people_utils.get_person_by_sender_id(message["sender_id"])
-                if sender is None:
-                    contacts_list = contacts.filter_contacts(phone=message["sender_id"], email=message["sender_id"])
-                    if len(contacts_list) > 0:
-                        sender = people_utils.create_new_person_from_contact(contacts_list[0], sender_id=message["sender_id"])
-                messages[i]["sender_info"] = sender
+                messages[i]["sender_info"] = people_utils.get_person_by_sender_id(message["sender_id"])
     cursor.close()
     conn.close()
     return messages

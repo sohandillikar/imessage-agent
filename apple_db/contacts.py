@@ -4,6 +4,8 @@ import pandas as pd
 from dotenv import load_dotenv
 from dataclasses import dataclass
 import apple_db.utils as utils
+import tools.people.utils as people_utils
+import tools.messages.utils as messages_utils
 
 load_dotenv()
 
@@ -69,3 +71,13 @@ def filter_contacts(contacts: list[Contact] = None, firstname: str = None, lastn
     if return_type == "json":
         return filtered_contacts.to_dict('records')
     return filtered_contacts
+
+def setup_profiles():
+    permissions = messages_utils.get_permissions()
+    for sender_id in permissions.keys():
+        sender = people_utils.get_person_by_sender_id(sender_id)
+        if sender is None:
+            contacts_list = filter_contacts(phone=sender_id, email=sender_id)
+            if len(contacts_list) > 0:
+                sender = people_utils.create_new_person_from_contact(contacts_list[0], sender_id=sender_id)
+                print(f"Created new profile for {sender['full_name']} ({sender_id})\n")

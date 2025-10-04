@@ -1,5 +1,6 @@
 import os
 from dotenv import load_dotenv
+import apple_db.contacts as contacts
 import tools.people.utils as people_utils
 import tools.journals.utils as journals_utils
 import tools.messages.utils as messages_utils
@@ -15,6 +16,8 @@ def setup(update_vector_stores: bool = True) -> None:
     for env_var in env_vars:
         if not os.getenv(env_var):
             raise ValueError(f"{env_var} is not set in .env")
+
+    contacts.setup_profiles()
 
     if update_vector_stores:
         people_utils.update_people()
